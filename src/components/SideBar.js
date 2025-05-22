@@ -13,9 +13,9 @@ function SideBar() {
   return (
     <div
       className={`sidebar rounded-[24px] bg-[#222222] px-[10px] flex gap-[10px] h-full transition-width duration-300 ease-in-out
-        ${isOpen ? 'w-[40%]' : 'w-[5%]'}
+        ${isOpen ? 'w-[40%]' : 'w-[72px]'}
       `}>
-      <div className="flex flex-col items-center py-[10px] w-[50px] min-w-[50px]">
+      <div className="flex flex-col items-center py-[10px] w-[50`px] min-w-[50px]">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
