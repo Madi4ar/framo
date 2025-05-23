@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
         className={`antialiased bg-black text-white relative h-screen flex flex-col`}>
         <Header />
         {children}
-        <section className="w-full flex flex-wrap gap-[10px] h-96 justify-between bg-[#101010] pt-[42px] pb-[15px] px-[8px]">
+        <section className="w-full flex flex-wrap gap-[10px] h-[400px] justify-between bg-[#101010] pt-[10px] pb-[7px] px-[8px]">
           <SideBar />
           <VideoPlayer />
           <InstrumentsBar />
