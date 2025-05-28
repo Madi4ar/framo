@@ -1,10 +1,4 @@
-import Header from '@/components/Header';
 import './globals.css';
-import ChatInput from '@/components/ChatInput';
-import SideBar from '@/components/SideBar';
-import VideoPlayer from '@/components/VideoPlayer';
-import InstrumentsBar from '@/components/InstrumentsBar';
-import TimeLine from '@/components/TimeLine';
 
 export const metadata = {
   title: 'Framo',
@@ -16,20 +10,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body
         className={`antialiased bg-black text-white relative h-screen flex flex-col`}>
-        <Header />
         {children}
-        <section className="w-full flex flex-wrap gap-[10px] h-[400px] justify-between bg-[#101010] pt-[10px] pb-[7px] px-[8px]">
-          <SideBar />
-          <VideoPlayer />
-          <InstrumentsBar />
-        </section>
-
-        <section className="w-full flex-1 h-full overflow-auto px-[4px]">
-          <TimeLine />
-        </section>
-        <div className="relative bottom-3 w-[60%] mx-auto">
-          <ChatInput />
-        </div>
       </body>
     </html>
   );

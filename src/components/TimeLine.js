@@ -84,19 +84,19 @@ function TimeLine() {
               className="w-full bg-[#222222] h-[44px] mb-[2px]"></div>
           ))}
 
-          <div className="w-full flex bg-[#1A1A1A]">
-            {Array.from({ length: 16 }).map((_, index) => (
-              <div
-                key={index}
-                className="flex-1 px-[10px] py-[5px] border-r border-[#272727]">
-                {index % 2 === 0 ? (
-                  <p className="opacity-0">
-                    {String(index / 2).padStart(2, '0')}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
+            <div className="w-full flex bg-[#1A1A1A]">
+                {Array.from({ length: 16 }).map((_, index) => (
+                <div
+                    key={index}
+                    className="flex-1 px-[10px] py-[5px] border-r border-[#272727]">
+                    {index % 2 === 0 ? (
+                    <p className="opacity-0">
+                        {String(index / 2).padStart(2, '0')}
+                    </p>
+                    ) : null}
+                </div>
+                ))}
+            </div>
 
           <div className="w-full flex bg-[#222222] flex-1"></div>
         </div>
