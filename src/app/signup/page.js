@@ -1,12 +1,66 @@
 'use client';
 
 import Image from 'next/image';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
+import withReactContent from 'sweetalert2-react-content';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import axios from 'axios';
+import * as yup from 'yup';
 import React from 'react';
 import Link from 'next/link';
 import bgMain from '../../../public/images/background-main.png';
 import logo from '../../../public/images/main-logo.svg';
 
+const schema = yup.object().shape({
+  username: yup
+    .string()
+    .min(3, 'Минимум 3 символа')
+    .required('Имя пользователя обязательно'),
+  email: yup.string().email('Неверный email').required('Email обязателен'),
+  password1: yup
+    .string()
+    .min(6, 'Минимум 6 символов')
+    .required('Пароль обязателен'),
+  password2: yup
+    .string()
+    .oneOf([yup.ref('password1')], 'Пароли не совпадают')
+    .required('Подтвердите пароль'),
+});
+
 function SignUp() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  const MySwal = withReactContent(Swal);
+  const router = useRouter();
+
+  const onSubmit = async (data) => {
+    try {
+      const { confirmPassword, ...payload } = data;
+      await axios.post(
+        'http://91.147.104.165:8000/api/auth/registration/',
+        payload
+      );
+      MySwal.fire({
+        title: 'Registration was successful!',
+        icon: 'success',
+        draggable: true,
+      });
+      router.push('/login');
+      reset();
+    } catch (error) {
+      console.error(error);
+      alert('Ошибка при регистрации');
+    }
+  };
   return (
     <>
       <div className="w-full h-screen flex flex-wrap">
@@ -28,7 +82,26 @@ function SignUp() {
             Enter your credentials to create your account
           </p>
 
-          <div className="flex flex-col w-full md:w-1/2 mt-10">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col w-full md:w-1/2 mt-10">
+            <div className="flex flex-col w-full mb-8">
+              <label
+                htmlFor="textInput"
+                className="text-[#CACFCD] text-base mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                id="textInput"
+                className="outline-none bg-[#1B1B1B] rounded-xl px-3 py-2 w-full"
+                placeholder="Username"
+                {...register('username')}
+              />
+
+              {errors.username?.message}
+            </div>
+
             <div className="flex flex-col w-full">
               <label
                 htmlFor="textInput"
@@ -40,7 +113,9 @@ function SignUp() {
                 id="textInput"
                 className="outline-none bg-[#1B1B1B] rounded-xl px-3 py-2 w-full"
                 placeholder="example@gmail.com"
+                {...register('email')}
               />
+              {errors.email?.message}
             </div>
 
             <div className="flex flex-col w-full mt-8">
@@ -54,11 +129,32 @@ function SignUp() {
                 id="textInput"
                 className="outline-none bg-[#1B1B1B] rounded-xl px-3 py-2 w-full"
                 placeholder="Password"
+                {...register('password1')}
               />
+
+              {errors.password1?.message}
             </div>
 
-            <button className="w-full bg-[#136CFF] mt-10 py-2 rounded-xl font-bold">
-              Sign up
+            <div className="flex flex-col w-full mt-8">
+              <label
+                htmlFor="textInput"
+                className="text-[#CACFCD] text-base mb-2">
+                Confirm password
+              </label>
+              <input
+                type="password"
+                id="textInput"
+                className="outline-none bg-[#1B1B1B] rounded-xl px-3 py-2 w-full"
+                placeholder="Password"
+                {...register('password2')}
+              />
+              {errors.password2?.message}
+            </div>
+
+            <button
+              disabled={isSubmitting}
+              className="w-full bg-[#136CFF] mt-10 py-2 rounded-xl font-bold">
+              {isSubmitting ? 'Sigining...' : 'Sign up'}
             </button>
 
             <Link href="/login" className="mt-5 text-center">
@@ -67,7 +163,7 @@ function SignUp() {
                 Login
               </span>
             </Link>
-          </div>
+          </form>
         </div>
       </div>
     </>

@@ -1,11 +1,78 @@
 'use client';
 import Image from 'next/image';
-import React from 'react';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Link from 'next/link';
 import bgMain from '../../../public/images/background-main.png';
 import logo from '../../../public/images/main-logo.svg';
 
+const loginSchema = yup.object().shape({
+  email: yup.string().email('Неверный email').required('Email обязателен'),
+  password: yup
+    .string()
+    .min(6, 'Минимум 6 символов')
+    .required('Пароль обязателен'),
+});
+
 function LoginPage() {
+  const [loginError, setLoginError] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+  });
+
+  const MySwal = withReactContent(Swal);
+  const router = useRouter();
+
+  const onSubmit = async (data) => {
+    try {
+      const { ...payload } = data;
+      const response = await axios.post(
+        'http://91.147.104.165:8000/api/auth/login/',
+        payload
+      );
+      MySwal.fire({
+        title: 'Login was successful!',
+        icon: 'success',
+        draggable: true,
+      });
+      reset();
+      Cookies.set('access_token', response.data.access, {
+        expires: 7,
+        secure: true,
+        sameSite: 'Lax',
+      });
+      router.push('/main');
+    } catch (error) {
+      console.error(error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.non_field_errors
+      ) {
+        setLoginError(error.response.data.non_field_errors[0]);
+      } else {
+        setLoginError('Ошибка при входе. Попробуйте снова.');
+      }
+      MySwal.fire({
+        title: 'Login was error!',
+        icon: 'error',
+        draggable: true,
+      });
+    }
+  };
   return (
     <>
       <div className="w-full h-screen flex flex-wrap">
@@ -27,7 +94,9 @@ function LoginPage() {
             Enter your credentials to access your account
           </p>
 
-          <div className="flex flex-col w-full md:w-1/2 mt-10">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col w-full md:w-1/2 mt-10">
             <div className="flex flex-col w-full">
               <label
                 htmlFor="textInput"
@@ -39,6 +108,7 @@ function LoginPage() {
                 id="textInput"
                 className="outline-none bg-[#1B1B1B] rounded-xl px-3 py-2 w-full"
                 placeholder="example@gmail.com"
+                {...register('email')}
               />
             </div>
 
@@ -53,12 +123,21 @@ function LoginPage() {
                 id="textInput"
                 className="outline-none bg-[#1B1B1B] rounded-xl px-3 py-2 w-full"
                 placeholder="Password"
+                {...register('password')}
               />
             </div>
 
-            <button className="w-full bg-[#136CFF] mt-10 py-2 rounded-xl font-bold">
-              Login
+            <button
+              disabled={isSubmitting}
+              className="w-full bg-[#136CFF] mt-10 py-2 rounded-xl font-bold">
+              {isSubmitting ? 'Logining...' : 'Login'}
             </button>
+
+            {loginError && (
+              <p className="text-red-500 text-sm text-center mt-4">
+                {loginError}
+              </p>
+            )}
 
             <Link href="/signup" className="mt-5 text-center">
               Not a member?{' '}
@@ -66,7 +145,7 @@ function LoginPage() {
                 Create an account
               </span>
             </Link>
-          </div>
+          </form>
         </div>
       </div>
     </>
