@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 import { faCircle, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import upload from '../../public/images/icons/upload.svg';
 import diamond from '../../public/images/icons/diamond.svg';
 import durationIcon from '../../public/images/icons/duration.svg';
 import lang from '../../public/images/icons/language.svg';
 import cate from '../../public/images/icons/category-2.svg';
+import stop from '../../public/images/icons/stop-circle.svg';
 import aspectRatio916 from '../../public/images/icons/aspect-ratio-916.svg';
 import aspectRatio169 from '../../public/images/icons/aspect-ratio-169.svg';
 import aspectRatio23 from '../../public/images/icons/aspect-ratio-23.svg';
@@ -16,7 +19,9 @@ import aspectRatio32 from '../../public/images/icons/aspect-ratio-32.svg';
 import aspectRatioAuto from '../../public/images/icons/aspect-ratio-916.svg';
 import arrowTop from '../../public/images/icons/arrow-top.svg';
 
-function ChatInput() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function ChatInput({ setServerResponse }) {
   const aspectRatios = [
     { value: '9:16', icon: aspectRatio916 },
     { value: '16:9', icon: aspectRatio169 },
@@ -41,15 +46,141 @@ function ChatInput() {
 
   const [isDurationOpen, setIsDurationOpen] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState('30');
+
+  const fileInputRef = useRef(null);
+  const [files, setFiles] = useState([]);
+
+  const [previews, setPreviews] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles(selectedFiles);
+
+    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviews(newPreviews);
+  };
+
+  const handleSubmit = async () => {
+    const accessToken = Cookies.get('access_token');
+    setIsLoading(true);
+
+    if (files.length === 0) {
+      alert('Пожалуйста, выберите хотя бы одно видео.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const projectRes = await axios.post(
+        `${API_URL}projects/`,
+        { name: 'newchat' },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const projectId = projectRes.data.id;
+      console.log('Создан проект:', projectId);
+
+      const formData = new FormData();
+      formData.append('project_id', projectId);
+      files.forEach((file) => formData.append('videos', file));
+
+      const uploadRes = await axios.post(`${API_URL}upload/`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Загрузка завершена:', uploadRes.data);
+
+      let projectDetails = null;
+
+      await new Promise((resolve, reject) => {
+        const pollProject = async () => {
+          try {
+            const response = await axios.get(
+              `${API_URL}projects/${projectId}/`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+
+            projectDetails = response.data;
+            console.log('Текущее состояние проекта:', projectDetails);
+
+            if (
+              projectDetails.uploads.length > 0 &&
+              projectDetails.uploads[0].status === 'completed'
+            ) {
+              console.log('Проект готов:', projectDetails);
+              resolve();
+            } else {
+              setTimeout(pollProject, 3000);
+            }
+          } catch (err) {
+            console.error('Ошибка при опросе проекта:', err);
+            setTimeout(pollProject, 5000);
+          }
+        };
+
+        pollProject();
+      });
+
+      setFiles([]);
+      setPreviews([]);
+      setServerResponse(projectDetails);
+    } catch (error) {
+      console.error('Ошибка при загрузке:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="w-full bg-[#1E1E1E] rounded-[24px] px-[8px] pb-[8px] flex flex-col">
         <div className="flex items-center py-[16px] gap-[12px]">
           <Image src={upload} alt="" />
-          <input
+          {/* <input
             className="text-[#A1A3A4] w-full bg-transparent outline-none"
             placeholder="Upload your footage to start editing..."
-          />
+          /> */}
+
+          <label className="text-[#A1A3A4] w-full bg-transparent outline-none cursor-pointer">
+            {files.length === 0 && (
+              <div>Upload your footage to start editing...</div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              multiple
+              onChange={handleFileChange}
+            />
+
+            {previews.map((preview, index) => (
+              <div key={index} className="mb-4">
+                <video
+                  src={preview}
+                  controls={false}
+                  width={200}
+                  className="rounded"
+                />
+                <p className="mt-1 text-sm text-gray-600">
+                  {files[index]?.name}
+                </p>
+              </div>
+            ))}
+          </label>
         </div>
 
         <div className="flex items-center justify-between">
@@ -338,8 +469,14 @@ function ChatInput() {
 
           <button
             type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
             className="cursor-pointer rounded-full p-[10px] bg-[#2B2B2B]">
-            <Image src={arrowTop} alt="" />
+            {!isLoading ? (
+              <Image src={arrowTop} alt="Submit" />
+            ) : (
+              <Image src={stop} alt="Uploading..." />
+            )}
           </button>
         </div>
       </div>

@@ -5,14 +5,13 @@ import plus from '../../public/images/icons/plus.svg';
 import column from '../../public/images/icons/report-columns.svg';
 import chat from '../../public/images/icons/chat-alt.svg';
 import settings from '../../public/images/icons/cog-sharp.svg';
-import image from '../../public/images/chunk.png';
 
-function SideBar() {
+function SideBar({ serverResponse }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div
-      className={`sidebar rounded-[24px] bg-[#222222] px-[10px] flex gap-[10px] h-full transition-width duration-300 ease-in-out
+      className={`sidebar z-50 rounded-[24px] bg-[#222222] px-[10px] flex gap-[10px] h-96 transition-width duration-300 ease-in-out
         ${isOpen ? 'w-[40%]' : 'w-[72px]'}
       `}>
       <div className="flex flex-col items-center py-[10px] w-[50`px] min-w-[50px]">
@@ -51,21 +50,38 @@ function SideBar() {
         }`}>
         <div className="w-full flex items-center justify-center py-[8px] bg-[#171717] border border-[#979797] rounded-lg mt-[10px] gap-2">
           <Image src={settings} alt="settings" />
-          <p className="text-white">Analytics is completed</p>
+          <p className="text-white">
+            {' '}
+            {serverResponse && serverResponse.uploads.length > 0
+              ? 'Analytics is completed'
+              : 'Analyzing videos'}
+          </p>
         </div>
 
-        <div className="flex flex-wrap justify-between mt-5 overflow-y-scroll">
-          {[...Array(25)].map((_, index) => (
-            <Image
-              className="mb-2"
-              key={index}
-              src={image}
-              alt={`Image ${index + 1}`}
-              width={100}
-              height={100}
-            />
-          ))}
-        </div>
+        {serverResponse && serverResponse.uploads.length > 0 ? (
+          <ul className="mt-5 max-h-[75%] overflow-y-auto">
+            {serverResponse.uploads.map((upload) => (
+              <div key={upload.id} className="mt-2">
+                {Array.isArray(upload.video.video_description) ? (
+                  upload.video.video_description.map((desc, index) => (
+                    <div key={index} className="mb-2 p-2 text-white rounded">
+                      <p>
+                        <strong>Time range:</strong> {desc.time_range}
+                      </p>
+                      <p>
+                        <strong>Description:</strong> {desc.description}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>{upload.video.video_description}</p>
+                )}
+              </div>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-white mt-2">No data available</p>
+        )}
       </div>
     </div>
   );

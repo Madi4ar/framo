@@ -29,6 +29,8 @@ const schema = yup.object().shape({
     .required('Подтвердите пароль'),
 });
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 function SignUp() {
   const {
     register,
@@ -45,10 +47,7 @@ function SignUp() {
   const onSubmit = async (data) => {
     try {
       const { confirmPassword, ...payload } = data;
-      await axios.post(
-        'http://91.147.104.165:8000/api/auth/registration/',
-        payload
-      );
+      await axios.post(`${API_URL}auth/registration`, payload);
       MySwal.fire({
         title: 'Registration was successful!',
         icon: 'success',

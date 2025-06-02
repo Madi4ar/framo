@@ -21,6 +21,8 @@ const loginSchema = yup.object().shape({
     .required('Пароль обязателен'),
 });
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 function LoginPage() {
   const [loginError, setLoginError] = useState('');
 
@@ -39,10 +41,7 @@ function LoginPage() {
   const onSubmit = async (data) => {
     try {
       const { ...payload } = data;
-      const response = await axios.post(
-        'http://91.147.104.165:8000/api/auth/login/',
-        payload
-      );
+      const response = await axios.post(`${API_URL}auth/login/`, payload);
       MySwal.fire({
         title: 'Login was successful!',
         icon: 'success',
