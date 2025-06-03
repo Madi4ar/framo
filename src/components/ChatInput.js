@@ -2,6 +2,8 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -18,6 +20,8 @@ import aspectRatio23 from '../../public/images/icons/aspect-ratio-23.svg';
 import aspectRatio32 from '../../public/images/icons/aspect-ratio-32.svg';
 import aspectRatioAuto from '../../public/images/icons/aspect-ratio-916.svg';
 import arrowTop from '../../public/images/icons/arrow-top.svg';
+import chat from '../../public/images/icons/chat-left-text.svg';
+import card from '../../public/images/icons/credit-card-2-front.svg';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -51,6 +55,7 @@ function ChatInput({ setServerResponse }) {
   const [files, setFiles] = useState([]);
 
   const [previews, setPreviews] = useState([]);
+  const pathname = usePathname();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -465,6 +470,30 @@ function ChatInput({ setServerResponse }) {
                 </div>
               )}
             </div>
+
+            <div className="relative bg-[#33383A] rounded-xl flex items-center justify-between">
+              <Link
+                className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
+                  pathname === '/main'
+                    ? 'border border-[#31535B] bg-[#136CFF]'
+                    : ''
+                }`}
+                href="/main">
+                <Image src={chat} alt="" />
+                Chat
+              </Link>
+
+              <Link
+                className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
+                  pathname === '/editor'
+                    ? 'border border-[#31535B] bg-[#136CFF]'
+                    : ''
+                }`}
+                href="/editor">
+                <Image src={card} alt="" />
+                Editor
+              </Link>
+            </div>
           </div>
 
           <button
@@ -475,7 +504,7 @@ function ChatInput({ setServerResponse }) {
             {!isLoading ? (
               <Image src={arrowTop} alt="Submit" />
             ) : (
-              <Image src={stop} alt="Uploading..." />
+              <Image className="animate-pulse" src={stop} alt="Uploading..." />
             )}
           </button>
         </div>

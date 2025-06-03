@@ -66,7 +66,7 @@ function MainPage() {
       {/* <section className="w-full flex-1 h-full overflow-auto px-[4px]">
         <TimeLine />
       </section> */}
-      <div className="relative bottom-3 w-[60%] mx-auto">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-3 w-[60%] mx-auto">
         <ChatInput setServerResponse={setServerResponse} />
       </div>
     </>

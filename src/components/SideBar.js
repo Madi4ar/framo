@@ -1,6 +1,7 @@
 'use client';
 import Image from 'next/image';
 import React, { useState } from 'react';
+import TypingText from './TypingText';
 import plus from '../../public/images/icons/plus.svg';
 import column from '../../public/images/icons/report-columns.svg';
 import chat from '../../public/images/icons/chat-alt.svg';
@@ -69,7 +70,8 @@ function SideBar({ serverResponse }) {
                         <strong>Time range:</strong> {desc.time_range}
                       </p>
                       <p>
-                        <strong>Description:</strong> {desc.description}
+                        <strong>Description:</strong>
+                        <span>{desc.description} </span>
                       </p>
                     </div>
                   ))
