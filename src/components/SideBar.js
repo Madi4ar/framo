@@ -96,7 +96,7 @@ function SideBar({ serverResponse }) {
             ))}
           </ul>
         ) : (
-          <p className="text-white mt-2">No data available</p>
+          <p className="text-white mt-2 outline-none">No data available</p>
         )}
       </div>
     </div>
