@@ -1,7 +1,6 @@
 'use client';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import TypingText from './TypingText';
 import plus from '../../public/images/icons/plus.svg';
 import column from '../../public/images/icons/report-columns.svg';
 import chat from '../../public/images/icons/chat-alt.svg';
@@ -71,6 +70,21 @@ function SideBar({ serverResponse }) {
                       </p>
                       <p>
                         <strong>Description:</strong>
+                        <TypeAnimation
+                          sequence={[
+                            // Same substring at the start will only be typed out once, initially
+                            'We produce food for Mice',
+                            1000, // wait 1s before replacing "Mice" with "Hamsters"
+                            'We produce food for Hamsters',
+                            1000,
+                            'We produce food for Guinea Pigs',
+                            1000,
+                            'We produce food for Chinchillas',
+                            1000,
+                          ]}
+                          wrapper="span"
+                          speed={50}
+                        />
                         <span>{desc.description} </span>
                       </p>
                     </div>
