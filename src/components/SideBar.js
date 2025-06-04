@@ -12,7 +12,7 @@ function SideBar({ serverResponse }) {
   return (
     <div
       className={`sidebar z-50 rounded-[24px] bg-[#222222] px-[10px] flex gap-[10px] h-96 transition-width duration-300 ease-in-out
-        ${isOpen ? 'w-[40%]' : 'w-[72px]'}
+        ${isOpen ? 'w-full' : 'w-[72px]'}
       `}>
       <div className="flex flex-col items-center py-[10px] w-[50`px] min-w-[50px]">
         <button

@@ -142,8 +142,68 @@ function ChatInput({ setServerResponse }) {
       setFiles([]);
       setPreviews([]);
       setServerResponse(projectDetails);
+
+      await axios.post(
+        `${API_URL}projects/${projectId}/results/request/`,
+        { prompt: 'Create a some video' },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log('Запрос на генерацию результата отправлен');
+
+      let results = null;
+
+      await new Promise((resolve, reject) => {
+        const pollResult = async () => {
+          try {
+            const response = await axios.get(
+              `${API_URL}projects/${projectId}/results/status/`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+
+            const results = response.data;
+            console.log('Ответ на статус запроса:', results);
+
+            const lastResult = results.find((item) => item.is_last);
+
+            if (lastResult && lastResult.status === 'completed') {
+              console.log('Результат готов:', lastResult);
+
+              const downloadUrl = lastResult.result?.output_file;
+              if (downloadUrl) {
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = downloadUrl.split('/').pop();
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }
+
+              resolve();
+            } else {
+              setTimeout(pollResult, 3000);
+            }
+          } catch (err) {
+            console.error('Ошибка при опросе результата:', err);
+            setTimeout(pollResult, 5000);
+          }
+        };
+
+        pollResult();
+      });
+
+      setFiles([]);
+      setPreviews([]);
+      setServerResponse(projectDetails);
     } catch (error) {
-      console.error('Ошибка при загрузке:', error);
+      console.error('Ошибка при обработке:', error);
     } finally {
       setIsLoading(false);
     }
@@ -485,11 +545,11 @@ function ChatInput({ setServerResponse }) {
 
               <Link
                 className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
-                  pathname === '/editor'
+                  pathname === '/main/editor'
                     ? 'border border-[#31535B] bg-[#136CFF]'
                     : ''
                 }`}
-                href="/editor">
+                href="/main/editor">
                 <Image src={card} alt="" />
                 Editor
               </Link>
