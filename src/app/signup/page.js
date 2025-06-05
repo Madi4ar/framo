@@ -16,17 +16,17 @@ import logo from '../../../public/images/main-logo.svg';
 const schema = yup.object().shape({
   username: yup
     .string()
-    .min(3, 'Минимум 3 символа')
-    .required('Имя пользователя обязательно'),
-  email: yup.string().email('Неверный email').required('Email обязателен'),
+    .min(3, 'Minimum 3 characters')
+    .required('Username required'),
+  email: yup.string().email('Invalid email').required('Email required'),
   password1: yup
     .string()
-    .min(6, 'Минимум 6 символов')
-    .required('Пароль обязателен'),
+    .min(6, 'Minimum 6 characters')
+    .required('Password required'),
   password2: yup
     .string()
-    .oneOf([yup.ref('password1')], 'Пароли не совпадают')
-    .required('Подтвердите пароль'),
+    .oneOf([yup.ref('password1')], 'Passwords do not match')
+    .required('Confirm your password'),
 });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -57,7 +57,7 @@ function SignUp() {
       reset();
     } catch (error) {
       console.error(error);
-      alert('Ошибка при регистрации');
+      alert('Error during registration');
     }
   };
   return (

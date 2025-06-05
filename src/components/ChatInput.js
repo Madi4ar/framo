@@ -5,7 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import axios from 'axios';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 import Cookies from 'js-cookie';
 import { faCircle, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import upload from '../../public/images/icons/upload.svg';
@@ -59,6 +60,7 @@ function ChatInput({ setServerResponse }) {
   const pathname = usePathname();
 
   const [isLoading, setIsLoading] = useState(false);
+  const MySwal = withReactContent(Swal);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -73,7 +75,12 @@ function ChatInput({ setServerResponse }) {
     setIsLoading(true);
 
     if (files.length === 0) {
-      alert('Пожалуйста, выберите хотя бы одно видео.');
+      MySwal.fire({
+        position: 'top-end',
+        title: 'Please, select at least one video.',
+        icon: 'error',
+        showConfirmButton: false,
+      });
       setIsLoading(false);
       return;
     }

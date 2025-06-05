@@ -65,7 +65,7 @@ function LoginPage() {
       ) {
         setLoginError(error.response.data.non_field_errors[0]);
       } else {
-        setLoginError('Ошибка при входе. Попробуйте снова.');
+        setLoginError('Error signing in. Please try again.');
       }
       MySwal.fire({
         title: 'Login was error!',

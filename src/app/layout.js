@@ -8,9 +8,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased bg-black text-white relative h-screen flex flex-col`}>
-        {children}
+      <body className={`antialiased bg-black text-white `}>
+        <div className="relative h-screen flex flex-col">{children}</div>
       </body>
     </html>
   );
