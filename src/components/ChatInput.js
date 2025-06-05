@@ -22,6 +22,7 @@ import aspectRatioAuto from '../../public/images/icons/aspect-ratio-916.svg';
 import arrowTop from '../../public/images/icons/arrow-top.svg';
 import chat from '../../public/images/icons/chat-left-text.svg';
 import card from '../../public/images/icons/credit-card-2-front.svg';
+import api from '@/lib/axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -78,15 +79,7 @@ function ChatInput({ setServerResponse }) {
     }
 
     try {
-      const projectRes = await axios.post(
-        `${API_URL}projects/`,
-        { name: 'newchat' },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const projectRes = await api.post(`projects/`, { name: 'newchat' });
 
       const projectId = projectRes.data.id;
       console.log('Создан проект:', projectId);
@@ -95,12 +88,7 @@ function ChatInput({ setServerResponse }) {
       formData.append('project_id', projectId);
       files.forEach((file) => formData.append('videos', file));
 
-      const uploadRes = await axios.post(`${API_URL}upload/`, formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const uploadRes = await api.post(`upload/`, formData);
 
       console.log('Загрузка завершена:', uploadRes.data);
 
@@ -109,14 +97,7 @@ function ChatInput({ setServerResponse }) {
       await new Promise((resolve, reject) => {
         const pollProject = async () => {
           try {
-            const response = await axios.get(
-              `${API_URL}projects/${projectId}/`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              }
-            );
+            const response = await api.get(`projects/${projectId}/`);
 
             projectDetails = response.data;
             console.log('Текущее состояние проекта:', projectDetails);
@@ -143,15 +124,9 @@ function ChatInput({ setServerResponse }) {
       setPreviews([]);
       setServerResponse(projectDetails);
 
-      await axios.post(
-        `${API_URL}projects/${projectId}/results/request/`,
-        { prompt: 'Create a some video' },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      await api.post(`projects/${projectId}/results/request/`, {
+        prompt: 'Create a cinematic, action video',
+      });
       console.log('Запрос на генерацию результата отправлен');
 
       let results = null;
@@ -159,13 +134,8 @@ function ChatInput({ setServerResponse }) {
       await new Promise((resolve, reject) => {
         const pollResult = async () => {
           try {
-            const response = await axios.get(
-              `${API_URL}projects/${projectId}/results/status/`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              }
+            const response = await api.get(
+              `projects/${projectId}/results/status/`
             );
 
             const results = response.data;
