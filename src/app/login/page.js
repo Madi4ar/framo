@@ -42,10 +42,12 @@ function LoginPage() {
     try {
       const { ...payload } = data;
       const response = await axios.post(`${API_URL}auth/login/`, payload);
-      MySwal.fire({
+      await MySwal.fire({
         title: 'Login was successful!',
         icon: 'success',
-        draggable: true,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
       reset();
       Cookies.set('access_token', response.data.access, {
