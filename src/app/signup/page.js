@@ -47,7 +47,7 @@ function SignUp() {
   const onSubmit = async (data) => {
     try {
       const { confirmPassword, ...payload } = data;
-      await axios.post(`${API_URL}auth/registration`, payload);
+      await axios.post(`${API_URL}auth/registration/`, payload);
       MySwal.fire({
         title: 'Registration was successful!',
         icon: 'success',
