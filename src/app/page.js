@@ -39,7 +39,7 @@ export default function Home() {
               The end of editing. The rise of vision.
             </p>
 
-            <div className="flex gap-">
+            <div className="flex gap-5">
               <Link
                 href="/login"
                 className="px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]">
