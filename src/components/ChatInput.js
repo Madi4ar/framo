@@ -23,6 +23,7 @@ import aspectRatioAuto from '../../public/images/icons/aspect-ratio-916.svg';
 import arrowTop from '../../public/images/icons/arrow-top.svg';
 import chat from '../../public/images/icons/chat-left-text.svg';
 import card from '../../public/images/icons/credit-card-2-front.svg';
+import loader from '../../public/images/icons/loader.svg';
 import api from '@/lib/axios';
 import { useChat } from '@/app/context/ChatContext';
 
@@ -258,12 +259,23 @@ function ChatInput() {
         </div>
 
         {previews.map((preview, index) => (
-          <div key={index} className="mb-4">
+          <div
+            key={index}
+            className="relative mb-4 w-[200px] h-[112px] rounded overflow-hidden">
+            {isLoading && (
+              <div className="absolute inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-10">
+                <Image
+                  src={loader}
+                  alt=""
+                  className="animate-spin w-8 h-8 bg-black rounded-full"
+                />
+              </div>
+            )}
             <video
               src={preview}
               controls={false}
               width={200}
-              className="rounded"
+              className="rounded pointer-events-none"
             />
             <p className="mt-1 text-sm text-gray-600">{files[index]?.name}</p>
           </div>
