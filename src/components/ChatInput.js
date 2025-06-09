@@ -24,10 +24,12 @@ import arrowTop from '../../public/images/icons/arrow-top.svg';
 import chat from '../../public/images/icons/chat-left-text.svg';
 import card from '../../public/images/icons/credit-card-2-front.svg';
 import api from '@/lib/axios';
+import { useChat } from '@/app/context/ChatContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-function ChatInput({ setServerResponse }) {
+function ChatInput() {
+  const { setServerResponse, addMessage } = useChat();
   const aspectRatios = [
     { value: '9:16', icon: aspectRatio916 },
     { value: '16:9', icon: aspectRatio169 },
@@ -58,6 +60,9 @@ function ChatInput({ setServerResponse }) {
 
   const [previews, setPreviews] = useState([]);
   const pathname = usePathname();
+  const [projectId, setProjectId] = useState(null);
+
+  const [videoUrl, setVideoUrl] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const MySwal = withReactContent(Swal);
@@ -89,6 +94,7 @@ function ChatInput({ setServerResponse }) {
       const projectRes = await api.post(`projects/`, { name: 'newchat' });
 
       const projectId = projectRes.data.id;
+      setProjectId(projectId);
       console.log('Создан проект:', projectId);
 
       const formData = new FormData();
@@ -131,54 +137,11 @@ function ChatInput({ setServerResponse }) {
       setPreviews([]);
       setServerResponse(projectDetails);
 
-      await api.post(`projects/${projectId}/results/request/`, {
-        prompt: 'Create a cinematic, action video',
+      addMessage({
+        type: 'response',
+        data: projectDetails,
+        timestamp: new Date().toISOString(),
       });
-      console.log('Запрос на генерацию результата отправлен');
-
-      let results = null;
-
-      await new Promise((resolve, reject) => {
-        const pollResult = async () => {
-          try {
-            const response = await api.get(
-              `projects/${projectId}/results/status/`
-            );
-
-            const results = response.data;
-            console.log('Ответ на статус запроса:', results);
-
-            const lastResult = results.find((item) => item.is_last);
-
-            if (lastResult && lastResult.status === 'completed') {
-              console.log('Результат готов:', lastResult);
-
-              const downloadUrl = lastResult.result?.output_file;
-              if (downloadUrl) {
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = downloadUrl.split('/').pop();
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }
-
-              resolve();
-            } else {
-              setTimeout(pollResult, 3000);
-            }
-          } catch (err) {
-            console.error('Ошибка при опросе результата:', err);
-            setTimeout(pollResult, 5000);
-          }
-        };
-
-        pollResult();
-      });
-
-      setFiles([]);
-      setPreviews([]);
-      setServerResponse(projectDetails);
     } catch (error) {
       console.error('Ошибка при обработке:', error);
     } finally {
@@ -186,44 +149,125 @@ function ChatInput({ setServerResponse }) {
     }
   };
 
+  const pollResult = async (projectId) => {
+    setIsLoading(true);
+
+    const poll = async (resolve) => {
+      try {
+        const response = await api.get(`projects/${projectId}/results/status/`);
+        const results = response.data;
+        console.log('Ответ на статус запроса:', results);
+
+        const lastResult = results.find((item) => item.is_last);
+
+        if (lastResult && lastResult.status === 'completed') {
+          const downloadUrl = lastResult.result?.output_file;
+          console.log('Результат готов:', lastResult);
+
+          if (downloadUrl) {
+            setVideoUrl(downloadUrl);
+          }
+
+          addMessage({
+            type: 'response',
+            data: lastResult,
+            timestamp: new Date().toISOString(),
+          });
+
+          setIsLoading(false);
+          resolve();
+        } else {
+          setTimeout(() => poll(resolve), 3000);
+        }
+      } catch (err) {
+        console.error('Ошибка при опросе результата:', err);
+        setTimeout(() => poll(resolve), 5000);
+      }
+    };
+
+    return new Promise(poll);
+  };
+
+  const [prompt, setPrompt] = useState('');
+
+  const handlePromptSubmit = async () => {
+    setIsLoading(true);
+    if (!projectId) {
+      MySwal.fire({
+        title: 'Upload the video first',
+        icon: 'warning',
+        confirmButtonText: 'Ок',
+      });
+      return;
+    }
+
+    if (!prompt) return;
+
+    try {
+      addMessage({
+        type: 'user',
+        prompt,
+        timestamp: new Date().toISOString(),
+      });
+
+      await api.post(`projects/${projectId}/results/request/`, { prompt });
+      setIsLoading(false);
+      setPrompt('');
+      console.log('Запрос на генерацию результата отправлен');
+
+      await pollResult(projectId);
+    } catch (err) {
+      console.error('Ошибка при отправке prompt:', err);
+    }
+  };
+
   return (
     <>
       <div className="w-full bg-[#1E1E1E] rounded-[24px] px-[8px] pb-[8px] flex flex-col">
         <div className="flex items-center py-[16px] gap-[12px]">
-          <Image src={upload} alt="" />
-          {/* <input
-            className="text-[#A1A3A4] w-full bg-transparent outline-none"
+          <div
+            className="cursor-pointer"
+            onClick={() => fileInputRef.current.click()}>
+            <Image src={upload} alt="Upload video" />
+          </div>
+
+          <input
+            type="text"
+            value={prompt}
             placeholder="Upload your footage to start editing..."
-          /> */}
+            className="text-[#A1A3A4] w-full bg-transparent outline-none py-2"
+            disabled={isLoading}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
 
-          <label className="text-[#A1A3A4] w-full bg-transparent outline-none cursor-pointer">
-            {files.length === 0 && (
-              <div>Upload your footage to start editing...</div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              multiple
-              onChange={handleFileChange}
-            />
+          <button
+            className="w-auto px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]"
+            onClick={handlePromptSubmit}
+            disabled={isLoading}>
+            {!isLoading ? <p>Send</p> : <p>Loading...</p>}
+          </button>
 
-            {previews.map((preview, index) => (
-              <div key={index} className="mb-4">
-                <video
-                  src={preview}
-                  controls={false}
-                  width={200}
-                  className="rounded"
-                />
-                <p className="mt-1 text-sm text-gray-600">
-                  {files[index]?.name}
-                </p>
-              </div>
-            ))}
-          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            multiple
+            onChange={handleFileChange}
+          />
         </div>
+
+        {previews.map((preview, index) => (
+          <div key={index} className="mb-4">
+            <video
+              src={preview}
+              controls={false}
+              width={200}
+              className="rounded"
+            />
+            <p className="mt-1 text-sm text-gray-600">{files[index]?.name}</p>
+          </div>
+        ))}
 
         <div className="flex items-center justify-between">
           <div className="flex gap-[8px]">

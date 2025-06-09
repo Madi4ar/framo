@@ -39,25 +39,19 @@ export default function Home() {
               The end of editing. The rise of vision.
             </p>
 
-            <Link
-              href=""
-              className="gap-2 flex items-center bg-[#383945] rounded-[30px] px-[16px] py-[20px]">
-              <Image src={logoGoogle} alt="" />
-              <p className="text-[16px]">Sign in with Google</p>
-            </Link>
+            <div className="flex gap-">
+              <Link
+                href="/login"
+                className="px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]">
+                Log in
+              </Link>
 
-            <Link
-              href="/signup"
-              className="gap-2 flex items-center bg-[#383945] rounded-[30px] px-[16px] py-[20px]">
-              <Image src={email} alt="" className="w-6" />
-              <p className="text-[16px]">Sign up with email</p>
-            </Link>
-
-            <Link href="/login">
-              <p className="text-[16px] underline">
-                Already have account? Sign in with email
-              </p>
-            </Link>
+              <Link
+                href="/signup"
+                className="px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]">
+                Sign up
+              </Link>
+            </div>
           </div>
         </div>
       </div>

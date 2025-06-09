@@ -5,9 +5,12 @@ import plus from '../../public/images/icons/plus.svg';
 import column from '../../public/images/icons/report-columns.svg';
 import chat from '../../public/images/icons/chat-alt.svg';
 import settings from '../../public/images/icons/cog-sharp.svg';
+import { useChat } from '@/app/context/ChatContext';
 
-function SideBar({ serverResponse }) {
+function SideBar() {
   const [isOpen, setIsOpen] = useState(false);
+
+  const { serverResponse } = useChat();
 
   return (
     <div
@@ -76,6 +79,27 @@ function SideBar({ serverResponse }) {
                   ))
                 ) : (
                   <p>{upload.video.video_description}</p>
+                )}
+
+                {Array.isArray(
+                  upload.video.audio_transcript?.transcription.segments
+                ) ? (
+                  upload.video.audio_transcript?.transcription.segments.map(
+                    (segment, index) => (
+                      <div key={index} className="mb-2 p-2 text-white rounded">
+                        <p>
+                          <strong>Time range:</strong> {segment.start} -{' '}
+                          {segment.end}
+                        </p>
+                        <p>
+                          <strong>Description:</strong>
+                          <span>{segment.text} </span>
+                        </p>
+                      </div>
+                    )
+                  )
+                ) : (
+                  <p>{upload.video.audio_transcript?.transcription.segments}</p>
                 )}
               </div>
             ))}
