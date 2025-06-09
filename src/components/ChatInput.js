@@ -258,28 +258,30 @@ function ChatInput() {
           />
         </div>
 
-        {previews.map((preview, index) => (
-          <div
-            key={index}
-            className="relative mb-4 w-[200px] h-[112px] rounded overflow-hidden">
-            {isLoading && (
-              <div className="absolute inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-10">
-                <Image
-                  src={loader}
-                  alt=""
-                  className="animate-spin w-8 h-8 bg-black rounded-full"
-                />
-              </div>
-            )}
-            <video
-              src={preview}
-              controls={false}
-              width={200}
-              className="rounded pointer-events-none"
-            />
-            <p className="mt-1 text-sm text-gray-600">{files[index]?.name}</p>
-          </div>
-        ))}
+        <div className="flex gap-2 w-full overflow-x-auto">
+          {previews.map((preview, index) => (
+            <div
+              key={index}
+              className="relative mb-4 w-[200px] h-[112px] rounded overflow-hidden">
+              {isLoading && (
+                <div className="absolute inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-10">
+                  <Image
+                    src={loader}
+                    alt=""
+                    className="animate-spin w-8 h-8 bg-black rounded-full"
+                  />
+                </div>
+              )}
+              <video
+                src={preview}
+                controls={false}
+                width={200}
+                className="rounded pointer-events-none"
+              />
+              <p className="mt-1 text-sm text-gray-600">{files[index]?.name}</p>
+            </div>
+          ))}
+        </div>
 
         <div className="flex items-center justify-between">
           <div className="flex gap-[8px]">
