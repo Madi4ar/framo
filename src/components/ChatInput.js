@@ -1,611 +1,643 @@
-'use client';
+'use client'
 
-import React, { useState, useRef } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
-import Cookies from 'js-cookie';
-import { faCircle, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import upload from '../../public/images/icons/upload.svg';
-import diamond from '../../public/images/icons/diamond.svg';
-import durationIcon from '../../public/images/icons/duration.svg';
-import lang from '../../public/images/icons/language.svg';
-import cate from '../../public/images/icons/category-2.svg';
-import stop from '../../public/images/icons/stop-circle.svg';
-import aspectRatio916 from '../../public/images/icons/aspect-ratio-916.svg';
-import aspectRatio169 from '../../public/images/icons/aspect-ratio-169.svg';
-import aspectRatio23 from '../../public/images/icons/aspect-ratio-23.svg';
-import aspectRatio32 from '../../public/images/icons/aspect-ratio-32.svg';
-import aspectRatioAuto from '../../public/images/icons/aspect-ratio-916.svg';
-import arrowTop from '../../public/images/icons/arrow-top.svg';
-import chat from '../../public/images/icons/chat-left-text.svg';
-import card from '../../public/images/icons/credit-card-2-front.svg';
-import loader from '../../public/images/icons/loader.svg';
-import api from '@/lib/axios';
-import { useChat } from '@/app/context/ChatContext';
+import { useChat } from '@/app/context/ChatContext'
+import api from '@/lib/axios'
+import { faChevronRight, faCircle } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Cookies from 'js-cookie'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useRef, useState } from 'react'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import arrowTop from '../../public/images/icons/arrow-top.svg'
+import aspectRatio169 from '../../public/images/icons/aspect-ratio-169.svg'
+import aspectRatio23 from '../../public/images/icons/aspect-ratio-23.svg'
+import aspectRatio32 from '../../public/images/icons/aspect-ratio-32.svg'
+import {
+	default as aspectRatio916,
+	default as aspectRatioAuto,
+} from '../../public/images/icons/aspect-ratio-916.svg'
+import cate from '../../public/images/icons/category-2.svg'
+import chat from '../../public/images/icons/chat-left-text.svg'
+import card from '../../public/images/icons/credit-card-2-front.svg'
+import diamond from '../../public/images/icons/diamond.svg'
+import durationIcon from '../../public/images/icons/duration.svg'
+import lang from '../../public/images/icons/language.svg'
+import loader from '../../public/images/icons/loader.svg'
+import stop from '../../public/images/icons/stop-circle.svg'
+import upload from '../../public/images/icons/upload.svg'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 function ChatInput() {
-  const { setServerResponse, addMessage } = useChat();
-  const aspectRatios = [
-    { value: '9:16', icon: aspectRatio916 },
-    { value: '16:9', icon: aspectRatio169 },
-    { value: '2:3', icon: aspectRatio23 },
-    { value: '3:2', icon: aspectRatio32 },
-    { value: 'auto', icon: aspectRatioAuto },
-  ];
-  const resolutions = ['480p', '720p', '1080p', '1440p'];
-  const durations = ['15', '30', '45', '60'];
-  const languages = ['Russian', 'English', 'Kazakh'];
-  const categories = ['Comedy', 'Music', 'Gaming', 'Sports', 'Education'];
+	const { setServerResponse, addMessage } = useChat()
+	const aspectRatios = [
+		{ value: '9:16', icon: aspectRatio916 },
+		{ value: '16:9', icon: aspectRatio169 },
+		{ value: '2:3', icon: aspectRatio23 },
+		{ value: '3:2', icon: aspectRatio32 },
+		{ value: 'auto', icon: aspectRatioAuto },
+	]
+	const resolutions = ['480p', '720p', '1080p', '1440p']
+	const durations = ['15', '30', '45', '60']
+	const languages = ['Russian', 'English', 'Kazakh']
+	const categories = ['Comedy', 'Music', 'Gaming', 'Sports', 'Education']
 
-  const [isAspectRatioOpen, setIsAspectRatioOpen] = useState(false);
-  const [selectedAspectRatio, setSelectedAspectRatio] = useState('auto');
-  const [isResolutionOpen, setIsResolutionOpen] = useState(false);
-  const [selectedResolution, setSelectedResolution] = useState('1080p');
-  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
+	const [isAspectRatioOpen, setIsAspectRatioOpen] = useState(false)
+	const [selectedAspectRatio, setSelectedAspectRatio] = useState('auto')
+	const [isResolutionOpen, setIsResolutionOpen] = useState(false)
+	const [selectedResolution, setSelectedResolution] = useState('1080p')
+	const [isLanguageOpen, setIsLanguageOpen] = useState(false)
+	const [selectedLanguage, setSelectedLanguage] = useState('English')
 
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('Auto');
+	const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+	const [selectedCategory, setSelectedCategory] = useState('Auto')
 
-  const [isDurationOpen, setIsDurationOpen] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState('30');
+	const [isDurationOpen, setIsDurationOpen] = useState(false)
+	const [selectedDuration, setSelectedDuration] = useState('30')
 
-  const fileInputRef = useRef(null);
-  const [files, setFiles] = useState([]);
+	const fileInputRef = useRef(null)
+	const [files, setFiles] = useState({ videos: [], audios: [] })
 
-  const [previews, setPreviews] = useState([]);
-  const pathname = usePathname();
-  const [projectId, setProjectId] = useState(null);
+	const [previews, setPreviews] = useState([])
+	const pathname = usePathname()
+	const [projectId, setProjectId] = useState(null)
 
-  const [videoUrl, setVideoUrl] = useState('');
+	const [videoUrl, setVideoUrl] = useState('')
 
-  const [isLoading, setIsLoading] = useState(false);
-  const MySwal = withReactContent(Swal);
+	const [isLoading, setIsLoading] = useState(false)
+	const MySwal = withReactContent(Swal)
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles(selectedFiles);
+	const handleFileChange = e => {
+		const selectedFiles = Array.from(e.target.files)
+		const newVideos = selectedFiles.filter(file =>
+			file.type.startsWith('video/')
+		)
+		const newAudios = selectedFiles.filter(file =>
+			file.type.startsWith('audio/')
+		)
 
-    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
-    setPreviews(newPreviews);
-  };
+		// Обновим стейт с видео и аудио
+		setFiles({
+			videos: [...files.videos, ...newVideos],
+			audios: [...files.audios, ...newAudios],
+		})
 
-  const handleSubmit = async () => {
-    const accessToken = Cookies.get('access_token');
-    setIsLoading(true);
+		// Превью для видео
+		const newPreviews = newVideos.map(file => URL.createObjectURL(file))
+		setPreviews(prevPreviews => [...prevPreviews, ...newPreviews])
+	}
 
-    if (files.length === 0) {
-      MySwal.fire({
-        position: 'top-end',
-        title: 'Please, select at least one video.',
-        icon: 'error',
-        showConfirmButton: false,
-      });
-      setIsLoading(false);
-      return;
-    }
+	const handleSubmit = async () => {
+		const accessToken = Cookies.get('access_token')
+		setIsLoading(true)
 
-    try {
-      const projectRes = await api.post(`projects/`, { name: 'newchat' });
+		if (files.videos.length === 0) {
+			MySwal.fire({
+				position: 'top-end',
+				title: 'Please, select at least one video.',
+				icon: 'error',
+				showConfirmButton: false,
+			})
+			setIsLoading(false)
+			return
+		}
 
-      const projectId = projectRes.data.id;
-      setProjectId(projectId);
-      console.log('Создан проект:', projectId);
+		try {
+			const projectRes = await api.post('projects/', { name: 'newchat' })
 
-      const formData = new FormData();
-      formData.append('project_id', projectId);
-      files.forEach((file) => formData.append('videos', file));
+			const projectId = projectRes.data.id
+			setProjectId(projectId)
+			console.log('Создан проект:', projectId)
 
-      const uploadRes = await api.post(`upload/`, formData);
+			const formData = new FormData()
+			formData.append('project_id', projectId)
 
-      console.log('Загрузка завершена:', uploadRes.data);
+			// Добавляем видео и аудио в форму
+			files.videos.forEach(file => formData.append('videos', file))
+			files.audios.forEach(file => formData.append('audios', file))
 
-      let projectDetails = null;
+			const uploadRes = await api.post('upload/', formData)
 
-      await new Promise((resolve, reject) => {
-        const pollProject = async () => {
-          try {
-            const response = await api.get(`projects/${projectId}/`);
+			console.log('Загрузка завершена:', uploadRes.data)
 
-            projectDetails = response.data;
-            console.log('Текущее состояние проекта:', projectDetails);
+			let projectDetails = null
 
-            if (
-              projectDetails.uploads.length > 0 &&
-              projectDetails.uploads[0].status === 'completed'
-            ) {
-              console.log('Проект готов:', projectDetails);
-              resolve();
-            } else {
-              setTimeout(pollProject, 3000);
-            }
-          } catch (err) {
-            console.error('Ошибка при опросе проекта:', err);
-            setTimeout(pollProject, 5000);
-          }
-        };
+			await new Promise((resolve, reject) => {
+				const pollProject = async () => {
+					try {
+						const response = await api.get(`projects/${projectId}/`)
+						projectDetails = response.data
+						console.log('Текущее состояние проекта:', projectDetails)
 
-        pollProject();
-      });
+						if (
+							projectDetails.uploads.length > 0 &&
+							projectDetails.uploads[0].status === 'completed'
+						) {
+							console.log('Проект готов:', projectDetails)
+							resolve()
+						} else {
+							setTimeout(pollProject, 3000)
+						}
+					} catch (err) {
+						console.error('Ошибка при опросе проекта:', err)
+						setTimeout(pollProject, 5000)
+					}
+				}
 
-      setFiles([]);
-      setPreviews([]);
-      setServerResponse(projectDetails);
+				pollProject()
+			})
 
-      addMessage({
-        type: 'response',
-        data: projectDetails,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Ошибка при обработке:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+			setFiles({ videos: [], audios: [] })
+			setPreviews([])
+			setServerResponse(projectDetails)
 
-  const pollResult = async (projectId) => {
-    setIsLoading(true);
+			addMessage({
+				type: 'response',
+				data: projectDetails,
+				timestamp: new Date().toISOString(),
+			})
+		} catch (error) {
+			console.error('Ошибка при обработке:', error)
+		} finally {
+			setIsLoading(false)
+		}
+	}
 
-    const poll = async (resolve) => {
-      try {
-        const response = await api.get(`projects/${projectId}/results/status/`);
-        const results = response.data;
-        console.log('Ответ на статус запроса:', results);
+	const pollResult = async projectId => {
+		setIsLoading(true)
 
-        const lastResult = results.find((item) => item.is_last);
+		const poll = async resolve => {
+			try {
+				const response = await api.get(`projects/${projectId}/results/status/`)
+				const results = response.data
+				console.log('Ответ на статус запроса:', results)
 
-        if (lastResult && lastResult.status === 'completed') {
-          const downloadUrl = lastResult.result?.output_file;
-          console.log('Результат готов:', lastResult);
+				const lastResult = results.find(item => item.is_last)
 
-          if (downloadUrl) {
-            setVideoUrl(downloadUrl);
-          }
+				if (lastResult && lastResult.status === 'completed') {
+					const downloadUrl = lastResult.result?.output_file
+					console.log('Результат готов:', lastResult)
 
-          addMessage({
-            type: 'response',
-            data: lastResult,
-            timestamp: new Date().toISOString(),
-          });
+					if (downloadUrl) {
+						setVideoUrl(downloadUrl)
+					}
 
-          setIsLoading(false);
-          resolve();
-        } else {
-          setTimeout(() => poll(resolve), 3000);
-        }
-      } catch (err) {
-        console.error('Ошибка при опросе результата:', err);
-        setTimeout(() => poll(resolve), 5000);
-      }
-    };
+					addMessage({
+						type: 'response',
+						data: lastResult,
+						timestamp: new Date().toISOString(),
+					})
 
-    return new Promise(poll);
-  };
+					setIsLoading(false)
+					resolve()
+				} else {
+					setTimeout(() => poll(resolve), 3000)
+				}
+			} catch (err) {
+				console.error('Ошибка при опросе результата:', err)
+				setTimeout(() => poll(resolve), 5000)
+			}
+		}
 
-  const [prompt, setPrompt] = useState('');
+		return new Promise(poll)
+	}
 
-  const handlePromptSubmit = async () => {
-    setIsLoading(true);
-    if (!projectId) {
-      MySwal.fire({
-        title: 'Upload the video first',
-        icon: 'warning',
-        confirmButtonText: 'Ок',
-      });
-      return;
-    }
+	const [prompt, setPrompt] = useState('')
 
-    if (!prompt) return;
+	const handlePromptSubmit = async () => {
+		setIsLoading(true)
+		if (!projectId) {
+			MySwal.fire({
+				title: 'Upload the video first',
+				icon: 'warning',
+				confirmButtonText: 'Ок',
+			})
+			return
+		}
 
-    try {
-      addMessage({
-        type: 'user',
-        prompt,
-        timestamp: new Date().toISOString(),
-      });
+		if (!prompt) return
 
-      await api.post(`projects/${projectId}/results/request/`, { prompt });
-      setIsLoading(false);
-      setPrompt('');
-      console.log('Запрос на генерацию результата отправлен');
+		try {
+			addMessage({
+				type: 'user',
+				prompt,
+				timestamp: new Date().toISOString(),
+			})
 
-      await pollResult(projectId);
-    } catch (err) {
-      console.error('Ошибка при отправке prompt:', err);
-    }
-  };
+			await api.post(`projects/${projectId}/results/request/`, { prompt })
+			setIsLoading(false)
+			setPrompt('')
+			console.log('Запрос на генерацию результата отправлен')
 
-  return (
-    <>
-      <div className="w-full bg-[#1E1E1E] rounded-[24px] px-[8px] pb-[8px] flex flex-col">
-        <div className="flex items-center py-[16px] gap-[12px]">
-          <div
-            className="cursor-pointer"
-            onClick={() => fileInputRef.current.click()}>
-            <Image src={upload} alt="Upload video" />
-          </div>
+			await pollResult(projectId)
+		} catch (err) {
+			console.error('Ошибка при отправке prompt:', err)
+		}
+	}
 
-          <input
-            type="text"
-            value={prompt}
-            placeholder="Upload your footage to start editing..."
-            className="text-[#A1A3A4] w-full bg-transparent outline-none py-2"
-            disabled={isLoading}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
+	return (
+		<>
+			<div className='w-full bg-[#1E1E1E] rounded-[24px] px-[8px] pb-[8px] flex flex-col'>
+				<div className='flex items-center py-[16px] gap-[12px]'>
+					<div
+						className='cursor-pointer'
+						onClick={() => fileInputRef.current.click()}
+					>
+						<Image src={upload} alt='Upload video' />
+					</div>
 
-          <button
-            className="w-auto px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]"
-            onClick={handlePromptSubmit}
-            disabled={isLoading}>
-            {!isLoading ? <p>Send</p> : <p>Loading...</p>}
-          </button>
+					<input
+						type='text'
+						value={prompt}
+						placeholder='Upload your footage to start editing...'
+						className='text-[#A1A3A4] w-full bg-transparent outline-none py-2'
+						disabled={isLoading}
+						onChange={e => setPrompt(e.target.value)}
+					/>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/*"
-            className="hidden"
-            multiple
-            onChange={handleFileChange}
-          />
-        </div>
+					<button
+						className='w-auto px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]'
+						onClick={handlePromptSubmit}
+						disabled={isLoading}
+					>
+						{!isLoading ? <p>Send</p> : <p>Loading...</p>}
+					</button>
 
-        <div className="flex gap-2 w-full overflow-x-auto">
-          {previews.map((preview, index) => (
-            <div
-              key={index}
-              className="relative mb-4 w-[200px] h-[112px] rounded overflow-hidden">
-              {isLoading && (
-                <div className="absolute inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-10">
-                  <Image
-                    src={loader}
-                    alt=""
-                    className="animate-spin w-8 h-8 bg-black rounded-full"
-                  />
-                </div>
-              )}
-              <video
-                src={preview}
-                controls={false}
-                width={200}
-                className="rounded pointer-events-none"
-              />
-              <p className="mt-1 text-sm text-gray-600">{files[index]?.name}</p>
-            </div>
-          ))}
-        </div>
+					<input
+						ref={fileInputRef}
+						type='file'
+						accept='video/*,audio/*'
+						className='hidden'
+						multiple
+						onChange={handleFileChange}
+					/>
+				</div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex gap-[8px]">
-            <div className="relative">
-              <div
-                onClick={() => setIsAspectRatioOpen(!isAspectRatioOpen)}
-                className="p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between">
-                <div className="flex items-center">
-                  <Image
-                    src={
-                      aspectRatios.find(
-                        (ratio) => ratio.value === selectedAspectRatio
-                      )?.icon
-                    }
-                    alt={selectedAspectRatio}
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  <span>{selectedAspectRatio}</span>
-                </div>
-              </div>
-              {isAspectRatioOpen && (
-                <div className="absolute w-32 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50">
-                  {aspectRatios.map((ratio) => (
-                    <div
-                      key={ratio.value}
-                      onClick={() => {
-                        setSelectedAspectRatio(ratio.value);
-                        setIsAspectRatioOpen(false);
-                      }}
-                      className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
-                        selectedAspectRatio === ratio.value
-                          ? 'bg-[#2C2E33]'
-                          : ''
-                      }`}>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={ratio.icon}
-                          alt={ratio.value}
-                          width={20}
-                          height={20}
-                          className="mr-2"
-                        />
-                        <span className="text-white">{ratio.value}</span>
-                      </div>
+				<div className='flex gap-2 w-full overflow-x-auto'>
+					{previews.map((preview, index) => (
+						<div
+							key={index}
+							className='relative mb-4 w-[200px] h-[112px] rounded overflow-hidden'
+						>
+							{isLoading && (
+								<div className='absolute inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-10'>
+									<Image
+										src={loader}
+										alt=''
+										className='animate-spin w-8 h-8 bg-black rounded-full'
+									/>
+								</div>
+							)}
+							<video
+								src={preview}
+								controls={false}
+								width={200}
+								className='rounded pointer-events-none'
+							/>
+							<p className='mt-1 text-sm text-gray-600'>{files[index]?.name}</p>
+						</div>
+					))}
+				</div>
 
-                      {selectedAspectRatio === ratio.value ? (
-                        <FontAwesomeIcon
-                          className="text-white text-[8px]"
-                          icon={faCircle}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          className="text-white text-[12px]"
-                          icon={faChevronRight}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+				<div className='flex items-center justify-between'>
+					<div className='flex gap-[8px]'>
+						<div className='relative'>
+							<div
+								onClick={() => setIsAspectRatioOpen(!isAspectRatioOpen)}
+								className='p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between'
+							>
+								<div className='flex items-center'>
+									<Image
+										src={
+											aspectRatios.find(
+												ratio => ratio.value === selectedAspectRatio
+											)?.icon
+										}
+										alt={selectedAspectRatio}
+										width={20}
+										height={20}
+										className='mr-2'
+									/>
+									<span>{selectedAspectRatio}</span>
+								</div>
+							</div>
+							{isAspectRatioOpen && (
+								<div className='absolute w-32 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50'>
+									{aspectRatios.map(ratio => (
+										<div
+											key={ratio.value}
+											onClick={() => {
+												setSelectedAspectRatio(ratio.value)
+												setIsAspectRatioOpen(false)
+											}}
+											className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
+												selectedAspectRatio === ratio.value
+													? 'bg-[#2C2E33]'
+													: ''
+											}`}
+										>
+											<div className='flex items-center gap-2'>
+												<Image
+													src={ratio.icon}
+													alt={ratio.value}
+													width={20}
+													height={20}
+													className='mr-2'
+												/>
+												<span className='text-white'>{ratio.value}</span>
+											</div>
 
-            <div className="relative">
-              <div
-                onClick={() => setIsResolutionOpen(!isResolutionOpen)}
-                className="p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between">
-                <div className="flex items-center">
-                  <Image
-                    src={diamond}
-                    alt="resolution"
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  <span>{selectedResolution}</span>
-                </div>
-              </div>
-              {isResolutionOpen && (
-                <div className="absolute w-32 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50">
-                  {resolutions.map((resolution) => (
-                    <div
-                      key={resolution}
-                      onClick={() => {
-                        setSelectedResolution(resolution);
-                        setIsResolutionOpen(false);
-                      }}
-                      className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
-                        selectedResolution === resolution ? 'bg-[#2C2E33]' : ''
-                      }`}>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={diamond}
-                          alt={resolution}
-                          width={20}
-                          height={20}
-                          className="mr-2"
-                        />
-                        <span className="text-white">{resolution}</span>
-                      </div>
+											{selectedAspectRatio === ratio.value ? (
+												<FontAwesomeIcon
+													className='text-white text-[8px]'
+													icon={faCircle}
+												/>
+											) : (
+												<FontAwesomeIcon
+													className='text-white text-[12px]'
+													icon={faChevronRight}
+												/>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
 
-                      {selectedResolution === resolution ? (
-                        <FontAwesomeIcon
-                          className="text-white text-[8px]"
-                          icon={faCircle}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          className="text-white text-[12px]"
-                          icon={faChevronRight}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+						<div className='relative'>
+							<div
+								onClick={() => setIsResolutionOpen(!isResolutionOpen)}
+								className='p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between'
+							>
+								<div className='flex items-center'>
+									<Image
+										src={diamond}
+										alt='resolution'
+										width={20}
+										height={20}
+										className='mr-2'
+									/>
+									<span>{selectedResolution}</span>
+								</div>
+							</div>
+							{isResolutionOpen && (
+								<div className='absolute w-32 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50'>
+									{resolutions.map(resolution => (
+										<div
+											key={resolution}
+											onClick={() => {
+												setSelectedResolution(resolution)
+												setIsResolutionOpen(false)
+											}}
+											className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
+												selectedResolution === resolution ? 'bg-[#2C2E33]' : ''
+											}`}
+										>
+											<div className='flex items-center gap-2'>
+												<Image
+													src={diamond}
+													alt={resolution}
+													width={20}
+													height={20}
+													className='mr-2'
+												/>
+												<span className='text-white'>{resolution}</span>
+											</div>
 
-            <div className="relative">
-              <div
-                onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-                className="p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between">
-                <div className="flex items-center">
-                  <Image
-                    src={lang}
-                    alt="resolution"
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  <span>{selectedLanguage}</span>
-                </div>
-              </div>
-              {isLanguageOpen && (
-                <div className="absolute w-40 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50">
-                  {languages.map((language) => (
-                    <div
-                      key={language}
-                      onClick={() => {
-                        setSelectedLanguage(language);
-                        setIsLanguageOpen(false);
-                      }}
-                      className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
-                        selectedLanguage === language ? 'bg-[#2C2E33]' : ''
-                      }`}>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={lang}
-                          alt={language}
-                          width={20}
-                          height={20}
-                          className="mr-2"
-                        />
-                        <span className="text-white">{language}</span>
-                      </div>
+											{selectedResolution === resolution ? (
+												<FontAwesomeIcon
+													className='text-white text-[8px]'
+													icon={faCircle}
+												/>
+											) : (
+												<FontAwesomeIcon
+													className='text-white text-[12px]'
+													icon={faChevronRight}
+												/>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
 
-                      {selectedLanguage === language ? (
-                        <FontAwesomeIcon
-                          className="text-white text-[8px]"
-                          icon={faCircle}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          className="text-white text-[12px]"
-                          icon={faChevronRight}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+						<div className='relative'>
+							<div
+								onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+								className='p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between'
+							>
+								<div className='flex items-center'>
+									<Image
+										src={lang}
+										alt='resolution'
+										width={20}
+										height={20}
+										className='mr-2'
+									/>
+									<span>{selectedLanguage}</span>
+								</div>
+							</div>
+							{isLanguageOpen && (
+								<div className='absolute w-40 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50'>
+									{languages.map(language => (
+										<div
+											key={language}
+											onClick={() => {
+												setSelectedLanguage(language)
+												setIsLanguageOpen(false)
+											}}
+											className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
+												selectedLanguage === language ? 'bg-[#2C2E33]' : ''
+											}`}
+										>
+											<div className='flex items-center gap-2'>
+												<Image
+													src={lang}
+													alt={language}
+													width={20}
+													height={20}
+													className='mr-2'
+												/>
+												<span className='text-white'>{language}</span>
+											</div>
 
-            <div className="relative">
-              <div
-                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                className="p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between">
-                <div className="flex items-center">
-                  <Image
-                    src={cate}
-                    alt="resolution"
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  <span>{selectedCategory}</span>
-                </div>
-              </div>
-              {isCategoryOpen && (
-                <div className="absolute w-40 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50">
-                  {categories.map((category) => (
-                    <div
-                      key={category}
-                      onClick={() => {
-                        setSelectedCategory(category);
-                        setIsCategoryOpen(false);
-                      }}
-                      className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
-                        selectedCategory === category ? 'bg-[#2C2E33]' : ''
-                      }`}>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={cate}
-                          alt={cate}
-                          width={20}
-                          height={20}
-                          className="mr-2"
-                        />
-                        <span className="text-white">{category}</span>
-                      </div>
+											{selectedLanguage === language ? (
+												<FontAwesomeIcon
+													className='text-white text-[8px]'
+													icon={faCircle}
+												/>
+											) : (
+												<FontAwesomeIcon
+													className='text-white text-[12px]'
+													icon={faChevronRight}
+												/>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
 
-                      {selectedCategory === category ? (
-                        <FontAwesomeIcon
-                          className="text-white text-[8px]"
-                          icon={faCircle}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          className="text-white text-[12px]"
-                          icon={faChevronRight}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+						<div className='relative'>
+							<div
+								onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+								className='p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between'
+							>
+								<div className='flex items-center'>
+									<Image
+										src={cate}
+										alt='resolution'
+										width={20}
+										height={20}
+										className='mr-2'
+									/>
+									<span>{selectedCategory}</span>
+								</div>
+							</div>
+							{isCategoryOpen && (
+								<div className='absolute w-40 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50'>
+									{categories.map(category => (
+										<div
+											key={category}
+											onClick={() => {
+												setSelectedCategory(category)
+												setIsCategoryOpen(false)
+											}}
+											className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
+												selectedCategory === category ? 'bg-[#2C2E33]' : ''
+											}`}
+										>
+											<div className='flex items-center gap-2'>
+												<Image
+													src={cate}
+													alt={cate}
+													width={20}
+													height={20}
+													className='mr-2'
+												/>
+												<span className='text-white'>{category}</span>
+											</div>
 
-            <div className="relative">
-              <div
-                onClick={() => setIsDurationOpen(!isDurationOpen)}
-                className="p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between">
-                <div className="flex items-center">
-                  <Image
-                    src={durationIcon}
-                    alt="duration"
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  <span>{selectedDuration} minutes</span>
-                </div>
-              </div>
-              {isDurationOpen && (
-                <div className="absolute w-64 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50">
-                  {durations.map((duration) => (
-                    <div
-                      key={duration}
-                      onClick={() => {
-                        setSelectedDuration(duration);
-                        setIsDurationOpen(false);
-                      }}
-                      className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
-                        selectedDuration === duration ? 'bg-[#2C2E33]' : ''
-                      }`}>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={durationIcon}
-                          alt={duration}
-                          width={20}
-                          height={20}
-                          className="mr-2"
-                        />
-                        <span className="text-white">{duration} minutes</span>
-                      </div>
+											{selectedCategory === category ? (
+												<FontAwesomeIcon
+													className='text-white text-[8px]'
+													icon={faCircle}
+												/>
+											) : (
+												<FontAwesomeIcon
+													className='text-white text-[12px]'
+													icon={faChevronRight}
+												/>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
 
-                      {selectedDuration === duration ? (
-                        <FontAwesomeIcon
-                          className="text-white text-[8px]"
-                          icon={faCircle}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          className="text-white text-[12px]"
-                          icon={faChevronRight}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+						<div className='relative'>
+							<div
+								onClick={() => setIsDurationOpen(!isDurationOpen)}
+								className='p-[10px] bg-[#33383A] rounded-[20px] text-white w-full cursor-pointer flex items-center justify-between'
+							>
+								<div className='flex items-center'>
+									<Image
+										src={durationIcon}
+										alt='duration'
+										width={20}
+										height={20}
+										className='mr-2'
+									/>
+									<span>{selectedDuration} minutes</span>
+								</div>
+							</div>
+							{isDurationOpen && (
+								<div className='absolute w-64 bottom-full mb-2 bg-[#232529] rounded-lg overflow-hidden z-50'>
+									{durations.map(duration => (
+										<div
+											key={duration}
+											onClick={() => {
+												setSelectedDuration(duration)
+												setIsDurationOpen(false)
+											}}
+											className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-[#2C2E33] ${
+												selectedDuration === duration ? 'bg-[#2C2E33]' : ''
+											}`}
+										>
+											<div className='flex items-center gap-2'>
+												<Image
+													src={durationIcon}
+													alt={duration}
+													width={20}
+													height={20}
+													className='mr-2'
+												/>
+												<span className='text-white'>{duration} minutes</span>
+											</div>
 
-            <div className="relative bg-[#33383A] rounded-xl flex items-center justify-between">
-              <Link
-                className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
-                  pathname === '/main'
-                    ? 'border border-[#31535B] bg-[#136CFF]'
-                    : ''
-                }`}
-                href="/main">
-                <Image src={chat} alt="" />
-                Chat
-              </Link>
+											{selectedDuration === duration ? (
+												<FontAwesomeIcon
+													className='text-white text-[8px]'
+													icon={faCircle}
+												/>
+											) : (
+												<FontAwesomeIcon
+													className='text-white text-[12px]'
+													icon={faChevronRight}
+												/>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
 
-              <Link
-                className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
-                  pathname === '/main/editor'
-                    ? 'border border-[#31535B] bg-[#136CFF]'
-                    : ''
-                }`}
-                href="/main/editor">
-                <Image src={card} alt="" />
-                Editor
-              </Link>
-            </div>
-          </div>
+						<div className='relative bg-[#33383A] rounded-xl flex items-center justify-between'>
+							<Link
+								className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
+									pathname === '/main'
+										? 'border border-[#31535B] bg-[#136CFF]'
+										: ''
+								}`}
+								href='/main'
+							>
+								<Image src={chat} alt='' />
+								Chat
+							</Link>
 
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="cursor-pointer rounded-full p-[10px] bg-[#2B2B2B]">
-            {!isLoading ? (
-              <Image src={arrowTop} alt="Submit" />
-            ) : (
-              <Image className="animate-pulse" src={stop} alt="Uploading..." />
-            )}
-          </button>
-        </div>
-      </div>
-    </>
-  );
+							<Link
+								className={`px-3 gap-2 w-full h-full flex items-center justify-center rounded-xl ${
+									pathname === '/main/editor'
+										? 'border border-[#31535B] bg-[#136CFF]'
+										: ''
+								}`}
+								href='/main/editor'
+							>
+								<Image src={card} alt='' />
+								Editor
+							</Link>
+						</div>
+					</div>
+
+					<button
+						type='submit'
+						onClick={handleSubmit}
+						disabled={isLoading}
+						className='cursor-pointer rounded-full p-[10px] bg-[#2B2B2B]'
+					>
+						{!isLoading ? (
+							<Image src={arrowTop} alt='Submit' />
+						) : (
+							<Image className='animate-pulse' src={stop} alt='Uploading...' />
+						)}
+					</button>
+				</div>
+			</div>
+		</>
+	)
 }
 
 export default ChatInput;
