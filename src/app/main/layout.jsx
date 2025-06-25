@@ -3,11 +3,12 @@ import React, { useState, isValidElement, cloneElement } from 'react';
 import Header from '@/components/Header';
 import SideBar from '@/components/SideBar';
 import ChatInput from '@/components/ChatInput';
+import AuthLayout from '@/components/AuthLayout';
 import { ChatProvider } from '../context/ChatContext';
 
 export default function MainLayout({ children }) {
   return (
-    <>
+    <AuthLayout>
       <ChatProvider>
         <Header />
         <section className="bg-[#101010] flex-1 relative w-full flex gap-[10px] justify-between bg-[#101010] pt-[10px] pb-[7px] px-[8px]">
@@ -21,6 +22,6 @@ export default function MainLayout({ children }) {
           <ChatInput />
         </div>
       </ChatProvider>
-    </>
+    </AuthLayout>
   );
 }

@@ -68,6 +68,8 @@ function ChatInput() {
 	const [videoUrl, setVideoUrl] = useState('')
 
 	const [isLoading, setIsLoading] = useState(false)
+	const [isUploading, setIsUploading] = useState(false)
+	const [isAnalyzing, setIsAnalyzing] = useState(false)
 	const MySwal = withReactContent(Swal)
 
 	const handleFileChange = e => {
@@ -106,12 +108,14 @@ function ChatInput() {
 		}
 
 		try {
+			// Step 1: Create project
 			const projectRes = await api.post('projects/', { name: 'newchat' })
-
 			const projectId = projectRes.data.id
 			setProjectId(projectId)
 			console.log('Создан проект:', projectId)
 
+			// Step 2: Upload files and get IDs
+			setIsUploading(true)
 			const formData = new FormData()
 			formData.append('project_id', projectId)
 
@@ -120,9 +124,17 @@ function ChatInput() {
 			files.audios.forEach(file => formData.append('audios', file))
 
 			const uploadRes = await api.post('upload/', formData)
-
 			console.log('Загрузка завершена:', uploadRes.data)
+			setIsUploading(false)
 
+			// Step 3: Send video IDs for analysis
+			setIsAnalyzing(true)
+			const describeRes = await api.post('upload/describe/', {
+				videos: uploadRes.data.videos
+			})
+			console.log('Анализ запрошен:', describeRes.data)
+
+			// Step 4: Poll for completion status
 			let projectDetails = null
 
 			await new Promise((resolve, reject) => {
@@ -150,6 +162,7 @@ function ChatInput() {
 				pollProject()
 			})
 
+			setIsAnalyzing(false)
 			setFiles({ videos: [], audios: [] })
 			setPreviews([])
 			setServerResponse(projectDetails)
@@ -161,6 +174,8 @@ function ChatInput() {
 			})
 		} catch (error) {
 			console.error('Ошибка при обработке:', error)
+			setIsUploading(false)
+			setIsAnalyzing(false)
 		} finally {
 			setIsLoading(false)
 		}
@@ -258,13 +273,6 @@ function ChatInput() {
 						onChange={e => setPrompt(e.target.value)}
 					/>
 
-					<button
-						className='w-auto px-[24px] py-[10px] rounded-[30px] bg-[rgba(51,56,58,0.25)] backdrop-blur-[50px] shadow-[inset_0px_-1px_1px_rgba(255,255,255,0.25),0px_8px_4px_6px_rgba(0,0,0,0.05),inset_0px_1px_1px_rgba(255,255,255,0.25)]'
-						onClick={handlePromptSubmit}
-						disabled={isLoading}
-					>
-						{!isLoading ? <p>Send</p> : <p>Loading...</p>}
-					</button>
 
 					<input
 						ref={fileInputRef}
@@ -631,7 +639,7 @@ function ChatInput() {
 						{!isLoading ? (
 							<Image src={arrowTop} alt='Submit' />
 						) : (
-							<Image className='animate-pulse' src={stop} alt='Uploading...' />
+							<Image className='animate-spin' src={loader} alt='Loading...' />
 						)}
 					</button>
 				</div>

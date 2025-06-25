@@ -2,14 +2,13 @@
 import Image from 'next/image';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Link from 'next/link';
+import { Toast, useAlert } from '../../components';
 import bgMain from '../../../public/images/background-main.png';
 import logo from '../../../public/images/main-logo.svg';
 
@@ -25,6 +24,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function LoginPage() {
   const [loginError, setLoginError] = useState('');
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const { showErrorToast, showSuccessToast: showSuccessToastAlert } = useAlert();
 
   const {
     register,
@@ -35,47 +36,65 @@ function LoginPage() {
     resolver: yupResolver(loginSchema),
   });
 
-  const MySwal = withReactContent(Swal);
   const router = useRouter();
 
   const onSubmit = async (data) => {
     try {
       const { ...payload } = data;
       const response = await axios.post(`${API_URL}auth/login/`, payload);
-      await MySwal.fire({
-        title: 'Login was successful!',
-        icon: 'success',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
-      reset();
-      Cookies.set('access_token', response.data.access, {
-        expires: 7,
-        secure: true,
-        sameSite: 'Lax',
-      });
-      router.push('/main');
+      
+      // Show success toast
+      setShowSuccessToast(true);
+      
+      // Auto-hide after 2 seconds and redirect
+      setTimeout(() => {
+        setShowSuccessToast(false);
+        reset();
+        Cookies.set('access_token', response.data.access, {
+          expires: 7,
+          secure: true,
+          sameSite: 'Lax',
+        });
+        router.push('/main');
+      }, 2000);
+      
     } catch (error) {
       console.error(error);
+      let errorMessage = 'Error signing in. Please try again.';
+      
       if (
         error.response &&
         error.response.data &&
         error.response.data.non_field_errors
       ) {
-        setLoginError(error.response.data.non_field_errors[0]);
+        errorMessage = error.response.data.non_field_errors[0];
+        setLoginError(errorMessage);
       } else {
-        setLoginError('Error signing in. Please try again.');
+        setLoginError(errorMessage);
       }
-      MySwal.fire({
-        title: 'Login was error!',
-        icon: 'error',
-        draggable: true,
+      
+      // Show error toast instead of SweetAlert
+      showErrorToast('Login Failed', errorMessage, {
+        duration: 5000,
+        position: 'top-right'
       });
     }
   };
+
   return (
     <>
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <Toast
+          type="success"
+          title="Login successful!"
+          message="Redirecting to dashboard..."
+          onClose={() => setShowSuccessToast(false)}
+          duration={2000}
+          position="top-right"
+        />
+      )}
+
       <div className="w-full h-screen flex flex-wrap">
         <div className="hidden md:block md:w-1/2 h-full relative">
           <Image className="w-full h-full object-cover " src={bgMain} alt="" />
