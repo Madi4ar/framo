@@ -1,4 +1,5 @@
 import './globals.css';
+import { AlertProvider } from '../components/AlertProvider';
 
 export const metadata = {
   title: 'Framo',
@@ -9,7 +10,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`antialiased bg-black text-white `}>
-        <div className="relative h-screen flex flex-col">{children}</div>
+        <AlertProvider>
+          <div className="relative h-screen flex flex-col">{children}</div>
+        </AlertProvider>
       </body>
     </html>
   );
