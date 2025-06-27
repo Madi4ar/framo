@@ -257,10 +257,8 @@ function ChatInput() {
     setIsLoading(true);
 
     if (files.videos.length > 0 || files.audios.length > 0) {
-      // Если есть видео или аудио — запускаем загрузку
       handleSubmit();
     } else if (prompt.trim() !== '') {
-      // Если есть prompt — но нет файлов — отправляем запрос
       if (!projectId) {
         MySwal.fire({
           title: 'Сначала загрузите видео',
@@ -273,7 +271,6 @@ function ChatInput() {
 
       handlePromptSubmit();
     } else {
-      // Если вообще ничего не введено
       MySwal.fire({
         title: 'Пожалуйста, загрузите видео или введите запрос',
         icon: 'warning',
