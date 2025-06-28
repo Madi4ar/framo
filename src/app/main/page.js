@@ -4,7 +4,6 @@ import category from '../../../public/images/icons/category-2.svg';
 import Image from 'next/image';
 import { useChat } from '../context/ChatContext';
 
-// Helper function to format time in HH:MM:SS format
 const formatTime = (seconds) => {
   const hours = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
@@ -74,7 +73,6 @@ export default function MainPage() {
               {msg.type === 'response' && msg.data && (
                 <div className="text-green-400 text-sm">
                   ✅ Видео готово! ID проекта: {msg.data.id}
-                  {/* Combined video and audio segments */}
                   {msg.data.uploads?.map((upload) => {
                     const videoDescriptions = Array.isArray(
                       upload.video.video_description
@@ -91,7 +89,6 @@ export default function MainPage() {
                       upload.video.audio_transcript?.transcription;
                     const audioSegments = transcript?.segments || [];
 
-                    // Calculate total video duration
                     let totalDuration = 0;
                     videoDescriptions.forEach((desc) => {
                       const [start, end] = desc.time_range
@@ -106,7 +103,6 @@ export default function MainPage() {
                       totalDuration = Math.max(totalDuration, end);
                     });
 
-                    // Also check audio segments for total duration
                     audioSegments.forEach((segment) => {
                       totalDuration = Math.max(
                         totalDuration,
@@ -114,15 +110,12 @@ export default function MainPage() {
                       );
                     });
 
-                    // Combine and sort all segments by time
                     const allSegments = [];
 
-                    // Add video descriptions
                     videoDescriptions.forEach((desc) => {
                       const [start, end] = desc.time_range
                         .split('-')
                         .map((time) => {
-                          // Handle format like "00:00:07.600"
                           const parts = time.split(':');
                           const hours = parseInt(parts[0]) || 0;
                           const minutes = parseInt(parts[1]) || 0;
@@ -138,7 +131,6 @@ export default function MainPage() {
                       });
                     });
 
-                    // Add audio segments
                     audioSegments.forEach((segment) => {
                       allSegments.push({
                         type: 'audio',
@@ -151,7 +143,6 @@ export default function MainPage() {
                       });
                     });
 
-                    // Sort by start time
                     allSegments.sort((a, b) => a.start - b.start);
 
                     return (
@@ -193,7 +184,6 @@ export default function MainPage() {
                                   {segment.content}
                                 </div>
 
-                                {/* Progress bar showing position relative to total video length */}
                                 <div className="mt-2">
                                   <div className="w-full bg-gray-700 rounded-full h-1 relative">
                                     <div

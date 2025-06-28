@@ -28,6 +28,7 @@ import lang from '../../public/images/icons/language.svg';
 import loader from '../../public/images/icons/loader.svg';
 import stop from '../../public/images/icons/stop-circle.svg';
 import upload from '../../public/images/icons/upload.svg';
+import music from '../../public/images/music.png';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -74,6 +75,7 @@ function ChatInput() {
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
+
     const newVideos = selectedFiles.filter((file) =>
       file.type.startsWith('video/')
     );
@@ -81,15 +83,29 @@ function ChatInput() {
       file.type.startsWith('audio/')
     );
 
-    // Обновим стейт с видео и аудио
-    setFiles({
-      videos: [...files.videos, ...newVideos],
-      audios: [...files.audios, ...newAudios],
-    });
+    setFiles((prev) => ({
+      videos: [...prev.videos, ...newVideos],
+      audios: [...prev.audios, ...newAudios],
+    }));
 
-    // Превью для видео
-    const newPreviews = newVideos.map((file) => URL.createObjectURL(file));
-    setPreviews((prevPreviews) => [...prevPreviews, ...newPreviews]);
+    const videoPreviews = newVideos.map((file) => ({
+      type: 'video',
+      src: URL.createObjectURL(file),
+      name: file.name,
+    }));
+
+    const audioPreviews = newAudios.map((file) => ({
+      type: 'audio',
+      src: URL.createObjectURL(file),
+      name: file.name,
+      preview: music,
+    }));
+
+    setPreviews((prev) => {
+      const updated = [...prev, ...videoPreviews, ...audioPreviews];
+      console.log('Updated previews:', updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async () => {
@@ -310,7 +326,7 @@ function ChatInput() {
         </div>
 
         <div className="flex gap-2 w-full overflow-x-auto">
-          {previews.map((preview, index) => (
+          {previews.map((item, index) => (
             <div
               key={index}
               className="relative mb-4 w-[200px] h-[112px] rounded overflow-hidden">
@@ -323,13 +339,26 @@ function ChatInput() {
                   />
                 </div>
               )}
-              <video
-                src={preview}
-                controls={false}
-                width={200}
-                className="rounded pointer-events-none"
-              />
-              <p className="mt-1 text-sm text-gray-600">{files[index]?.name}</p>
+
+              {item.type === 'video' ? (
+                <video
+                  src={item.src}
+                  controls={false}
+                  className="w-full h-full object-cover pointer-events-none"
+                />
+              ) : (
+                <div className="border rounded-lg border-gray-500 h-full flex items-center justify-center flex-col">
+                  <Image
+                    src={item.preview}
+                    alt="Audio preview"
+                    className="w-14"
+                  />
+
+                  <p className="mt-1 text-sm text-white-700 truncate text-center">
+                    {item.name}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
