@@ -3,8 +3,6 @@ import Link from 'next/link';
 import logo from '../../public/images/main-logo.svg';
 import tv from '../../public/images/icons/tv.svg';
 import bgMain from '../../public/images/background-main.png';
-import logoGoogle from '../../public/images/icons/logo-google.svg';
-import email from '../../public/images/icons/email.svg';
 
 export default function Home() {
   return (

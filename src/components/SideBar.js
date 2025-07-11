@@ -5,12 +5,12 @@ import plus from '../../public/images/icons/plus.svg';
 import column from '../../public/images/icons/report-columns.svg';
 import chat from '../../public/images/icons/chat-alt.svg';
 import settings from '../../public/images/icons/cog-sharp.svg';
-import { useChat } from '@/app/context/ChatContext';
+import { useChatStore } from '@/app/store/chatStore';
 
 function SideBar() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { serverResponse } = useChat();
+  const serverResponse = useChatStore((state) => state.serverResponse);
 
   return (
     <div
@@ -62,47 +62,60 @@ function SideBar() {
         </div>
 
         {serverResponse && serverResponse.uploads.length > 0 ? (
-          <ul className="mt-5 max-h-[75%] overflow-y-auto">
-            {serverResponse.uploads.map((upload) => (
-              <div key={upload.id} className="mt-2">
-                {Array.isArray(upload.video.video_description) ? (
-                  upload.video.video_description.map((desc, index) => (
-                    <div key={index} className="mb-2 p-2 text-white rounded">
-                      <p>
-                        <strong>Time range:</strong> {desc.time_range}
-                      </p>
-                      <p>
-                        <strong>Description:</strong>
-                        <span>{desc.description} </span>
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p>{upload.video.video_description}</p>
-                )}
+          <ul className="mt-5 max-h-[75%] overflow-y-auto bg-[#171717] px-2 rounded-lg">
+            {serverResponse.uploads.map((upload) => {
+              const videoDescriptions = Array.isArray(
+                upload.video.video_description
+              )
+                ? upload.video.video_description
+                : [upload.video.video_description];
 
-                {Array.isArray(
-                  upload.video.audio_transcript?.transcription.segments
-                ) ? (
-                  upload.video.audio_transcript?.transcription.segments.map(
-                    (segment, index) => (
-                      <div key={index} className="mb-2 p-2 text-white rounded">
-                        <p>
-                          <strong>Time range:</strong> {segment.start} -{' '}
-                          {segment.end}
-                        </p>
-                        <p>
-                          <strong>Description:</strong>
-                          <span>{segment.text} </span>
-                        </p>
-                      </div>
-                    )
-                  )
-                ) : (
-                  <p>{upload.video.audio_transcript?.transcription.segments}</p>
-                )}
-              </div>
-            ))}
+              const audioSegments = Array.isArray(
+                upload.video.audio_transcript?.transcription?.segments
+              )
+                ? upload.video.audio_transcript.transcription.segments
+                : [upload.video.audio_transcript?.transcription?.segments];
+
+              const maxLength = Math.max(
+                videoDescriptions.length,
+                audioSegments.length
+              );
+
+              return (
+                <div key={upload.id} className="mt-2">
+                  {Array.from({ length: maxLength }).map((_, index) => (
+                    <div key={index} className="mb-4 p-2 text-white rounded">
+                      {videoDescriptions[index] && (
+                        <div className="mb-2 text-white ">
+                          <p className="text-base leading-relaxed">
+                            <span className="mr-2 whitespace-nowrap">
+                              [{videoDescriptions[index]?.time_range}]
+                            </span>
+
+                            {videoDescriptions[index]?.description}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Аудио описание */}
+                      {audioSegments[index] && (
+                        <div className="mb-2 text-white w-full">
+                          <p className="text-base leading-relaxed w-full">
+                            <span className="mr-2 whitespace-nowrap">
+                              [{audioSegments[index]?.start} -{' '}
+                              {audioSegments[index]?.end}]
+                            </span>
+                            <span className="bg-[#222222] w-full mt-2 py-2 px-3">
+                              {audioSegments[index]?.text}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-white mt-2 outline-none">No data available</p>

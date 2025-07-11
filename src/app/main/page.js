@@ -2,7 +2,7 @@
 import React from 'react';
 import category from '../../../public/images/icons/category-2.svg';
 import Image from 'next/image';
-import { useChat } from '../context/ChatContext';
+import { useChatStore } from '../store/chatStore';
 
 const formatTime = (seconds) => {
   const hours = Math.floor(seconds / 3600);
@@ -21,7 +21,8 @@ const formatTime = (seconds) => {
 };
 
 export default function MainPage() {
-  const { serverResponse, chatHistory } = useChat();
+  const chatHistory = useChatStore((state) => state.chatHistory);
+  const serverResponse = useChatStore((state) => state.serverResponse);
 
   const hasResponse = chatHistory.some((msg) => msg.type === 'response');
 

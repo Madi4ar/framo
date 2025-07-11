@@ -1,6 +1,6 @@
 'use client';
 
-import { useChat } from '@/app/context/ChatContext';
+import { useChatStore } from '@/app/store/chatStore';
 import api from '@/lib/axios';
 import { faChevronRight, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -33,7 +33,9 @@ import music from '../../public/images/music.png';
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function ChatInput() {
-  const { setServerResponse, addMessage } = useChat();
+  //   const { setServerResponse, addMessage } = useChat();
+  const addMessage = useChatStore((state) => state.addMessage);
+  const setServerResponse = useChatStore((state) => state.setServerResponse);
   const aspectRatios = [
     { value: '9:16', icon: aspectRatio916 },
     { value: '16:9', icon: aspectRatio169 },
