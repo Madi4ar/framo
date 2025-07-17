@@ -3,7 +3,7 @@ stages:
   - deploy
 
 variables:
-  APP_DIR: /home/youruser/nextjs-app
+  APP_DIR: sftp://serveradmin@91.147.104.165/home/serveradmin/framo-frontend
   NODE_ENV: production
 
 before_script:
