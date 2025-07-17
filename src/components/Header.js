@@ -24,7 +24,7 @@ function Header() {
             className="flex items-center gap-x-[12px] p-[6px] bg-[#136CFF] rounded-lg "
             style={{ boxShadow: '0px 0px 4px 1px #136CFF' }}>
             <Image src={diamond} alt="" />
-            <p className="text-white">Upgrade NOW</p>
+            <p className="text-white">Upgrade Now</p>
           </Link>
         </div>
 
