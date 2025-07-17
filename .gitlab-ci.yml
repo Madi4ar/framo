@@ -22,9 +22,9 @@ deploy:
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
 
     # Выполняем команды на сервере
-    - ssh $SSH_USER@$SSH_HOST <<EOF
+    - ssh $SSH_USER@$SSH_HOST ""
       cd $APP_DIR &&
       git checkout main &&
       git pull &&
       docker-compose up -d --build
-      EOF
+      ""
