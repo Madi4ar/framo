@@ -2,13 +2,15 @@
 
 import { useChatStore } from '@/app/store/chatStore';
 import api from '@/lib/axios';
+import { typeMessage } from '@/utils/typeMessage';
+import axios from 'axios';
 import { faChevronRight, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import arrowTop from '../../public/images/icons/arrow-top.svg';
@@ -74,6 +76,7 @@ function ChatInput() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const MySwal = withReactContent(Swal);
+  const videoUrlRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -112,92 +115,129 @@ function ChatInput() {
 
   const handleSubmit = async () => {
     const accessToken = Cookies.get('access_token');
-    setIsLoading(true);
-
-    if (files.videos.length === 0) {
-      MySwal.fire({
-        position: 'top-end',
-        title: 'Please, select at least one video.',
-        icon: 'error',
-        showConfirmButton: false,
-      });
-      setIsLoading(false);
-      return;
-    }
+    setIsUploading(true);
 
     try {
-      // Step 1: Create project
+      // Шаг 1: Создаём проект
       const projectRes = await api.post('projects/', { name: 'newchat' });
       const projectId = projectRes.data.id;
       setProjectId(projectId);
-      console.log('Создан проект:', projectId);
+      console.log('✅ Проект создан:', projectId);
 
-      // Step 2: Upload files and get IDs
-      setIsUploading(true);
+      // Шаг 2: Загружаем файлы
       const formData = new FormData();
       formData.append('project_id', projectId);
 
-      // Добавляем видео и аудио в форму
       files.videos.forEach((file) => formData.append('videos', file));
       files.audios.forEach((file) => formData.append('audios', file));
 
       const uploadRes = await api.post('upload/', formData);
-      console.log('Загрузка завершена:', uploadRes.data);
-      setIsUploading(false);
+      console.log('✅ Загрузка завершена:', uploadRes.data);
 
-      // Step 3: Send video IDs for analysis
-      setIsAnalyzing(true);
-      const describeRes = await api.post('upload/describe/', {
-        videos: uploadRes.data.videos,
-      });
-      console.log('Анализ запрошен:', describeRes.data);
+      // Шаг 3: Получаем ссылку на видео
+      const videoUrl = uploadRes.data.videos?.[0];
+      if (videoUrl) {
+        videoUrlRef.current = videoUrl;
+        setVideoUrl(videoUrl);
+        console.log('🎥 Ссылка на видео:', videoUrl);
 
-      // Step 4: Poll for completion status
-      let projectDetails = null;
-
-      await new Promise((resolve, reject) => {
-        const pollProject = async () => {
-          try {
-            const response = await api.get(`projects/${projectId}/`);
-            projectDetails = response.data;
-            console.log('Текущее состояние проекта:', projectDetails);
-
-            if (
-              projectDetails.uploads.length > 0 &&
-              projectDetails.uploads[0].status === 'completed'
-            ) {
-              console.log('Проект готов:', projectDetails);
-              resolve();
-            } else {
-              setTimeout(pollProject, 3000);
-            }
-          } catch (err) {
-            console.error('Ошибка при опросе проекта:', err);
-            setTimeout(pollProject, 5000);
-          }
-        };
-
-        pollProject();
-      });
-
-      setIsAnalyzing(false);
-      setFiles({ videos: [], audios: [] });
-      setPreviews([]);
-      setServerResponse(projectDetails);
-
-      addMessage({
-        type: 'response',
-        data: projectDetails,
-        timestamp: new Date().toISOString(),
-      });
+        addMessage({
+          type: 'response',
+          data: { videoUrl },
+          timestamp: new Date().toISOString(),
+        });
+      }
     } catch (error) {
-      console.error('Ошибка при обработке:', error);
-      setIsUploading(false);
-      setIsAnalyzing(false);
+      console.error('❌ Ошибка при отправке:', error);
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
+
+  // ЭТО ДЛЯ ОПИСАНИЕ ВИДЕО
+
+  //   const handleSubmit = async () => {
+  //     const accessToken = Cookies.get('access_token');
+  //     setIsLoading(true);
+
+  //     try {
+  //       // Step 1: Create project
+  //       const projectRes = await api.post('projects/', { name: 'newchat' });
+  //       const projectId = projectRes.data.id;
+  //       setProjectId(projectId);
+  //       console.log('Создан проект:', projectId);
+
+  //       // Step 2: Upload files and get IDs
+  //       setIsUploading(true);
+  //       const formData = new FormData();
+  //       formData.append('project_id', projectId);
+
+  //       // Добавляем видео и аудио в форму
+  //       files.videos.forEach((file) => formData.append('videos', file));
+  //       files.audios.forEach((file) => formData.append('audios', file));
+
+  //       const uploadRes = await api.post('upload/', formData);
+  //       console.log('Загрузка завершена:', uploadRes.data);
+  //       const videoUrl = uploadRes.data.videos?.[0];
+  //       if (videoUrl) {
+  //         videoUrlRef.current = videoUrl; // Сохраняем временно
+  //         console.log('🎥 Видео URL сохранён:', videoUrl);
+  //       }
+  //       setIsUploading(false);
+
+  //       // Step 3: Send video IDs for analysis
+  //       setIsAnalyzing(true);
+  //       const describeRes = await api.post('upload/describe/', {
+  //         videos: uploadRes.data.videos,
+  //       });
+  //       console.log('Анализ запрошен:', describeRes.data);
+
+  //       // Step 4: Poll for completion status
+  //       let projectDetails = null;
+
+  //       await new Promise((resolve, reject) => {
+  //         const pollProject = async () => {
+  //           try {
+  //             const response = await api.get(`projects/${projectId}/`);
+  //             projectDetails = response.data;
+  //             console.log('Текущее состояние проекта:', projectDetails);
+
+  //             if (
+  //               projectDetails.uploads.length > 0 &&
+  //               projectDetails.uploads[0].status === 'completed'
+  //             ) {
+  //               console.log('Проект готов:', projectDetails);
+  //               resolve();
+  //             } else {
+  //               setTimeout(pollProject, 3000);
+  //             }
+  //           } catch (err) {
+  //             console.error('Ошибка при опросе проекта:', err);
+  //             setTimeout(pollProject, 5000);
+  //           }
+  //         };
+
+  //         pollProject();
+  //       });
+
+  //       setIsAnalyzing(false);
+  //       setFiles({ videos: [], audios: [] });
+  //       setPreviews([]);
+  //       setServerResponse(projectDetails);
+
+  //       addMessage({
+  //         type: 'response',
+  //         data: projectDetails,
+  //         timestamp: new Date().toISOString(),
+  //       });
+  //     } catch (error) {
+  //       console.error('Ошибка при обработке:', error);
+  //       setIsUploading(false);
+  //       setIsAnalyzing(false);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
   const pollResult = async (projectId) => {
     setIsLoading(true);
@@ -239,64 +279,149 @@ function ChatInput() {
   };
 
   const [prompt, setPrompt] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
+  const [ws, setWs] = useState(null);
+  const socketRef = useRef(null);
+
+  const connectWebSocket = (session_id) => {
+    const ws = new WebSocket(`ws://91.147.104.166:8000/ws/${session_id}`);
+    socketRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('✅ WebSocket подключен');
+    };
+
+    ws.onmessage = (event) => {
+      const messageData = JSON.parse(event.data);
+      console.log('📩 Получено сообщение:', messageData);
+
+      if (messageData.messages && Array.isArray(messageData.messages)) {
+        messageData.messages.forEach((msg) => {
+          addMessage({
+            type: msg.type === 'ai' ? 'response' : 'user',
+            data: msg,
+            timestamp: new Date().toISOString(),
+          });
+        });
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('🔌 WebSocket закрыт');
+    };
+
+    ws.onerror = (err) => {
+      console.error('❗ WebSocket ошибка:', err);
+    };
+  };
 
   const handlePromptSubmit = async () => {
-    setIsLoading(true);
-    if (!projectId) {
-      MySwal.fire({
-        title: 'Upload the video first',
-        icon: 'warning',
-        confirmButtonText: 'Ок',
-      });
-      return;
-    }
+    if (!prompt.trim()) return;
 
-    if (!prompt) return;
+    setIsLoading(true);
+
+    const videoUrl = videoUrlRef.current;
+    const fullPrompt = videoUrl ? `${prompt} @${videoUrl}@` : prompt;
+
+    // 👇 очищаем, чтобы больше не прикреплялась
+    videoUrlRef.current = null;
+
+    addMessage({
+      type: 'user',
+      data: {
+        content: fullPrompt.replace(/@https?:\/\/[^@]+@/g, '').trim(),
+      },
+      timestamp: new Date().toISOString(),
+    });
 
     try {
-      addMessage({
-        type: 'user',
-        prompt,
-        timestamp: new Date().toISOString(),
-      });
+      const payload = {
+        data: {
+          content: fullPrompt,
+        },
+        ...(sessionId && { session_id: sessionId }),
+      };
 
-      await api.post(`projects/${projectId}/results/request/`, { prompt });
-      setIsLoading(false);
+      const res = await axios.post(
+        'http://91.147.104.166:8000/chat/message',
+        payload
+      );
+
+      console.log('Ответ от /chat/message:', res.data);
+
+      if (res.data.messages && Array.isArray(res.data.messages)) {
+        res.data.messages.forEach((msg) => {
+          addMessage({
+            type: msg.type === 'ai' ? 'response' : 'user',
+            data: {
+              ...msg,
+              content: msg.content?.replace(/@https?:\/\/[^@]+@/g, '').trim(),
+            },
+            timestamp: new Date().toISOString(),
+          });
+        });
+      }
+
+      if (res.data.session_id && !sessionId) {
+        setSessionId(res.data.session_id);
+        connectWebSocket(res.data.session_id);
+      }
+
       setPrompt('');
-      console.log('Запрос на генерацию результата отправлен');
-
-      await pollResult(projectId);
+      setFiles({ videos: [], audios: [] });
+      setPreviews([]);
     } catch (err) {
       console.error('Ошибка при отправке prompt:', err);
+      MySwal.fire({
+        title: 'Ошибка при отправке сообщения',
+        text: err.response?.data?.detail || 'Попробуйте ещё раз',
+        icon: 'error',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleUnifiedSubmit = () => {
+  const handleUnifiedSubmit = async () => {
     setIsLoading(true);
 
-    if (files.videos.length > 0 || files.audios.length > 0) {
-      handleSubmit();
-    } else if (prompt.trim() !== '') {
-      if (!projectId) {
+    try {
+      // Сначала загрузка файлов, если они есть
+      if (files.videos.length > 0 || files.audios.length > 0) {
+        await handleSubmit();
+      }
+
+      // Затем отправка prompt, если он введён
+      if (prompt.trim() !== '') {
+        await handlePromptSubmit();
+      }
+
+      // Если ничего не ввели и не загрузили — предупреждение
+      if (
+        files.videos.length === 0 &&
+        files.audios.length === 0 &&
+        prompt.trim() === ''
+      ) {
         MySwal.fire({
-          title: 'Сначала загрузите видео',
+          title: 'Пожалуйста, загрузите видео или введите запрос',
           icon: 'warning',
           confirmButtonText: 'Ок',
         });
-        setIsLoading(false);
-        return;
       }
-
-      handlePromptSubmit();
-    } else {
-      MySwal.fire({
-        title: 'Пожалуйста, загрузите видео или введите запрос',
-        icon: 'warning',
-        confirmButtonText: 'Ок',
-      });
+    } finally {
       setIsLoading(false);
     }
   };
+
+  // Закрытие сокета при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
 
   return (
     <>

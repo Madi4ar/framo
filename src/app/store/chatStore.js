@@ -4,6 +4,8 @@ import { create } from 'zustand';
 export const useChatStore = create((set, get) => ({
   chatHistory: [],
   serverResponse: null,
+  typingMessage: '', // 👉 текущий текст, который печатается
+  isTyping: false, // 👉 флаг, что идёт печать
 
   addMessage: (message) => {
     const existing = get().chatHistory;
@@ -30,4 +32,8 @@ export const useChatStore = create((set, get) => ({
       timestamp: new Date().toISOString(),
     });
   },
+
+  setTypingMessage: (message) => set({ typingMessage: message }),
+  clearTyping: () => set({ typingMessage: '', isTyping: false }),
+  setIsTyping: (flag) => set({ isTyping: flag }),
 }));

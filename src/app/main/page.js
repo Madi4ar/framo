@@ -57,6 +57,27 @@ export default function MainPage() {
 
       {hasResponse && (
         <div className="flex flex-col gap-3 max-h-[80%] w-[80%] overflow-y-auto absolute top-0">
+          {chatHistory.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`flex ${
+                msg.type === 'user' ? 'justify-end' : 'justify-start'
+              }`}>
+              <div
+                className={`max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                  msg.type === 'user'
+                    ? 'bg-[#0B0C0B] self-end border border-[#212121]'
+                    : 'bg-transparent text-white'
+                }`}>
+                {msg.data?.content}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* {hasResponse && (
+        <div className="flex flex-col gap-3 max-h-[80%] w-[80%] overflow-y-auto absolute top-0">
           {chatHistory.map((msg, index) => (
             <div
               key={index}
@@ -230,7 +251,7 @@ export default function MainPage() {
             </div>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

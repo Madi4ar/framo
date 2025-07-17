@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Alert, Toast, useAlert } from './index';
 
 const AlertDemo = () => {
-  const { 
-    showSuccessAlert, 
-    showErrorAlert, 
-    showWarningAlert, 
+  const {
+    showSuccessAlert,
+    showErrorAlert,
+    showWarningAlert,
     showInfoAlert,
     showSuccessToast,
     showErrorToast,
     showWarningToast,
-    showInfoToast
+    showInfoToast,
   } = useAlert();
 
   return (
@@ -27,7 +27,7 @@ const AlertDemo = () => {
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
             Alert Components
           </h2>
-          
+
           <div className="space-y-6">
             {/* Success Alert */}
             <Alert
@@ -68,22 +68,29 @@ const AlertDemo = () => {
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
             Toast Notifications
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
                 Success Toasts
               </h3>
               <button
-                onClick={() => showSuccessToast('Success!', 'Operation completed successfully')}
-                className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
+                onClick={() =>
+                  showSuccessToast(
+                    'Success!',
+                    'Operation completed successfully'
+                  )
+                }
+                className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
                 Show Success Toast
               </button>
               <button
-                onClick={() => showSuccessToast('Login Successful', 'Welcome back!', { position: 'top-center' })}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
+                onClick={() =>
+                  showSuccessToast('Login Successful', 'Welcome back!', {
+                    position: 'top-center',
+                  })
+                }
+                className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                 Show Success Toast (Top Center)
               </button>
             </div>
@@ -94,14 +101,18 @@ const AlertDemo = () => {
               </h3>
               <button
                 onClick={() => showErrorToast('Error!', 'Something went wrong')}
-                className="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
+                className="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
                 Show Error Toast
               </button>
               <button
-                onClick={() => showErrorToast('Connection Failed', 'Unable to connect to server', { position: 'bottom-right' })}
-                className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-              >
+                onClick={() =>
+                  showErrorToast(
+                    'Connection Failed',
+                    'Unable to connect to server',
+                    { position: 'bottom-right' }
+                  )
+                }
+                className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
                 Show Error Toast (Bottom Right)
               </button>
             </div>
@@ -111,15 +122,21 @@ const AlertDemo = () => {
                 Warning Toasts
               </h3>
               <button
-                onClick={() => showWarningToast('Warning!', 'Please check your input')}
-                className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
-              >
+                onClick={() =>
+                  showWarningToast('Warning!', 'Please check your input')
+                }
+                className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
                 Show Warning Toast
               </button>
               <button
-                onClick={() => showWarningToast('Low Storage', 'You are running low on storage space', { position: 'bottom-left' })}
-                className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
-              >
+                onClick={() =>
+                  showWarningToast(
+                    'Low Storage',
+                    'You are running low on storage space',
+                    { position: 'bottom-left' }
+                  )
+                }
+                className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
                 Show Warning Toast (Bottom Left)
               </button>
             </div>
@@ -129,15 +146,21 @@ const AlertDemo = () => {
                 Info Toasts
               </h3>
               <button
-                onClick={() => showInfoToast('Info', 'Here is some useful information')}
-                className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
+                onClick={() =>
+                  showInfoToast('Info', 'Here is some useful information')
+                }
+                className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
                 Show Info Toast
               </button>
               <button
-                onClick={() => showInfoToast('Update Available', 'A new version is available', { position: 'top-left' })}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
+                onClick={() =>
+                  showInfoToast(
+                    'Update Available',
+                    'A new version is available',
+                    { position: 'top-left' }
+                  )
+                }
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                 Show Info Toast (Top Left)
               </button>
             </div>
@@ -149,34 +172,50 @@ const AlertDemo = () => {
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
             Alert Triggers (Context-based)
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
                 Alert Examples
               </h3>
               <button
-                onClick={() => showSuccessAlert('Success Alert', 'This is a success alert using context')}
-                className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
+                onClick={() =>
+                  showSuccessAlert(
+                    'Success Alert',
+                    'This is a success alert using context'
+                  )
+                }
+                className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
                 Show Success Alert
               </button>
               <button
-                onClick={() => showErrorAlert('Error Alert', 'This is an error alert using context')}
-                className="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
+                onClick={() =>
+                  showErrorAlert(
+                    'Error Alert',
+                    'This is an error alert using context'
+                  )
+                }
+                className="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
                 Show Error Alert
               </button>
               <button
-                onClick={() => showWarningAlert('Warning Alert', 'This is a warning alert using context')}
-                className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
-              >
+                onClick={() =>
+                  showWarningAlert(
+                    'Warning Alert',
+                    'This is a warning alert using context'
+                  )
+                }
+                className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
                 Show Warning Alert
               </button>
               <button
-                onClick={() => showInfoAlert('Info Alert', 'This is an info alert using context')}
-                className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
+                onClick={() =>
+                  showInfoAlert(
+                    'Info Alert',
+                    'This is an info alert using context'
+                  )
+                }
+                className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
                 Show Info Alert
               </button>
             </div>
@@ -188,19 +227,35 @@ const AlertDemo = () => {
               <button
                 onClick={() => {
                   showSuccessToast('First Toast', 'This is the first toast');
-                  setTimeout(() => showErrorToast('Second Toast', 'This is the second toast'), 500);
-                  setTimeout(() => showWarningToast('Third Toast', 'This is the third toast'), 1000);
+                  setTimeout(
+                    () =>
+                      showErrorToast(
+                        'Second Toast',
+                        'This is the second toast'
+                      ),
+                    500
+                  );
+                  setTimeout(
+                    () =>
+                      showWarningToast(
+                        'Third Toast',
+                        'This is the third toast'
+                      ),
+                    1000
+                  );
                 }}
-                className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-              >
+                className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
                 Show Multiple Toasts
               </button>
               <button
                 onClick={() => {
-                  showInfoToast('Custom Duration', 'This toast will stay for 10 seconds', { duration: 10000 });
+                  showInfoToast(
+                    'Custom Duration',
+                    'This toast will stay for 10 seconds',
+                    { duration: 10000 }
+                  );
                 }}
-                className="w-full bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
-              >
+                className="w-full bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
                 Show Long Duration Toast
               </button>
             </div>
@@ -214,9 +269,11 @@ const AlertDemo = () => {
           </h2>
           <div className="space-y-4 text-gray-600 dark:text-gray-300">
             <div>
-              <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2">1. Setup AlertProvider</h3>
+              <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                1. Setup AlertProvider
+              </h3>
               <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-sm overflow-x-auto">
-{`import { AlertProvider } from './components';
+                {`import { AlertProvider } from './components';
 
 function App() {
   return (
@@ -227,11 +284,13 @@ function App() {
 }`}
               </pre>
             </div>
-            
+
             <div>
-              <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2">2. Use Alert Components</h3>
+              <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                2. Use Alert Components
+              </h3>
               <pre className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-sm overflow-x-auto">
-{`import { Alert, Toast, useAlert } from './components';
+                {`import { Alert, Toast, useAlert } from './components';
 
 // Direct usage
 <Alert type="success" title="Success" message="Operation completed" />
@@ -248,4 +307,4 @@ showSuccessToast('Success!', 'Operation completed');`}
   );
 };
 
-export default AlertDemo; 
+export default AlertDemo;
