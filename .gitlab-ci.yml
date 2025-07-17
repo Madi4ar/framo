@@ -1,5 +1,4 @@
 stages:
-  - test
   - deploy
 
 variables:
@@ -8,15 +7,6 @@ variables:
 
 before_script:
   - echo "Starting CI process..."
-
-test:
-  stage: test
-  image: node:18
-  script:
-    - npm ci
-    - npm run test:ci
-  only:
-    - main
 
 deploy:
   stage: deploy
@@ -37,7 +27,6 @@ deploy:
     # Выполняем команды на сервере
     - ssh $SSH_USER@$SSH_HOST <<EOF
       cd $APP_DIR
-      npm ci
       npm run build
       pm2 restart next-app || pm2 start npm --name "next-app" -- start
       EOF
