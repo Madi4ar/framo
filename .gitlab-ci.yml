@@ -21,9 +21,6 @@ deploy:
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
 
-    # Копируем проект на сервер
-    - rsync -avz --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_DIR
-
     # Выполняем команды на сервере
     - ssh $SSH_USER@$SSH_HOST <<EOF
       cd $APP_DIR
