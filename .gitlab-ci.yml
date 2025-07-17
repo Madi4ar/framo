@@ -2,7 +2,7 @@ stages:
   - deploy
 
 variables:
-  APP_DIR: /home/serveradmin/framo-frontend
+  APP_DIR: /home/serveradmin/framo
   NODE_ENV: production
 
 before_script:
