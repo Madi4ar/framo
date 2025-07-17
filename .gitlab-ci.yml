@@ -23,7 +23,8 @@ deploy:
 
     # Выполняем команды на сервере
     - ssh $SSH_USER@$SSH_HOST <<EOF
-      cd $APP_DIR
-      npm run build
-      pm2 restart next-app || pm2 start npm --name "next-app" -- start
+      cd $APP_DIR &&
+      git checkout main &&
+      git pull &&
+      docker-compose up -d --build
       EOF
