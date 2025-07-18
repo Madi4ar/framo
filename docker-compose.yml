@@ -2,11 +2,16 @@ version: '3.8'
 
 services:
   nextjs:
-    build: .
+    build:
+      context: .
+      args:
+        - BACKEND_APP_URL=https://backend.framo.ai/api/
     ports:
       - '3000:3000'
     env_file:
+      - .env.production
       - .env.local
     environment:
       - NODE_ENV=production
     restart: unless-stopped
+    command: ['npm', 'start']
