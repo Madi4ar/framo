@@ -28,6 +28,8 @@ function LoginPage() {
   const { showErrorToast, showSuccessToast: showSuccessToastAlert } =
     useAlert();
 
+  console.log(process.env);
+
   const {
     register,
     handleSubmit,
