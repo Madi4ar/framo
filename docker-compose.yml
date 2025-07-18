@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   nextjs:
+    container_name: framo-frontend
     build:
       context: .
       args:
