@@ -25,7 +25,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 function LoginPage() {
   const [loginError, setLoginError] = useState('');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const { showErrorToast, showSuccessToast: showSuccessToastAlert } = useAlert();
+  const { showErrorToast, showSuccessToast: showSuccessToastAlert } =
+    useAlert();
 
   const {
     register,
@@ -42,10 +43,10 @@ function LoginPage() {
     try {
       const { ...payload } = data;
       const response = await axios.post(`${API_URL}auth/login/`, payload);
-      
+
       // Show success toast
       setShowSuccessToast(true);
-      
+
       // Auto-hide after 2 seconds and redirect
       setTimeout(() => {
         setShowSuccessToast(false);
@@ -54,14 +55,14 @@ function LoginPage() {
           expires: 7,
           secure: true,
           sameSite: 'Lax',
+          domain: process.env.NEXT_PUBLIC_APP_URL,
         });
         router.push('/main');
       }, 2000);
-      
     } catch (error) {
       console.error(error);
       let errorMessage = 'Error signing in. Please try again.';
-      
+
       if (
         error.response &&
         error.response.data &&
@@ -72,11 +73,11 @@ function LoginPage() {
       } else {
         setLoginError(errorMessage);
       }
-      
+
       // Show error toast instead of SweetAlert
       showErrorToast('Login Failed', errorMessage, {
         duration: 5000,
-        position: 'top-right'
+        position: 'top-right',
       });
     }
   };
