@@ -55,9 +55,9 @@ function LoginPage() {
         reset();
         Cookies.set('access_token', response.data.access, {
           expires: 7,
-          secure: true,
+          secure: process.env.NODE_ENV === 'production', // только на HTTPS
           sameSite: 'Lax',
-          domain: process.env.NEXT_PUBLIC_APP_URL,
+          path: '/', // нужно!
         });
         router.push('/main');
       }, 2000);
