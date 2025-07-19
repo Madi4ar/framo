@@ -296,26 +296,30 @@ function ChatInput() {
       console.log('✅ WebSocket подключен');
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       const messageData = JSON.parse(event.data);
       console.log('📩 Получено сообщение:', messageData);
 
       if (messageData.messages && Array.isArray(messageData.messages)) {
-        messageData.messages.forEach((msg) => {
-          addMessage({
-            type: msg.type === 'message' ? 'response' : 'user',
-            data: msg,
-            timestamp: new Date().toISOString(),
-          });
-        });
+        for (const msg of messageData.messages) {
+          const isAI = msg.type === 'message';
+
+          if (isAI && msg.content) {
+            await typeMessage(
+              msg.content.replace(/@https?:\/\/[^@]+@/g, '').trim()
+            );
+          } else {
+            addMessage({
+              type: 'user',
+              data: msg,
+              timestamp: new Date().toISOString(),
+            });
+          }
+        }
       } else if (messageData.type === 'message' && messageData.data?.content) {
-        addMessage({
-          type: 'response',
-          data: {
-            content: messageData.data.content,
-          },
-          timestamp: new Date().toISOString(),
-        });
+        await typeMessage(
+          messageData.data.content.replace(/@https?:\/\/[^@]+@/g, '').trim()
+        );
       }
     };
 
@@ -336,7 +340,7 @@ function ChatInput() {
     try {
       const accessToken = Cookies.get('access_token');
 
-      // 🔥 Создаём проект при первом сообщении
+      // 🔥 Создание проекта при первом сообщении
       if (!projectIdRef.current) {
         const projectRes = await api.post('projects/', { name: 'newchat' });
         const createdId = projectRes.data.id;
@@ -351,11 +355,9 @@ function ChatInput() {
 
       const projectId = projectIdRef.current;
 
-      // 🔼 Загружаем файлы (если есть)
       if (files.videos.length > 0 || files.audios.length > 0) {
         const formData = new FormData();
         formData.append('project_id', projectId);
-
         files.videos.forEach((file) => formData.append('videos', file));
         files.audios.forEach((file) => formData.append('audios', file));
 
@@ -376,6 +378,7 @@ function ChatInput() {
       const fullPrompt = videoUrl ? `${prompt} @${videoUrl}@` : prompt;
       videoUrlRef.current = null;
 
+      // Добавляем пользовательское сообщение
       addMessage({
         type: 'user',
         data: {
@@ -384,7 +387,6 @@ function ChatInput() {
         timestamp: new Date().toISOString(),
       });
 
-      // 💬 Если WebSocket уже подключён — отправляем через него
       if (
         socketRef.current &&
         socketRef.current.readyState === WebSocket.OPEN
@@ -420,16 +422,21 @@ function ChatInput() {
         console.log('Ответ от /chat/message:', res.data);
 
         if (res.data.messages && Array.isArray(res.data.messages)) {
-          res.data.messages.forEach((msg) => {
-            addMessage({
-              type: msg.type === 'ai' ? 'response' : 'user',
-              data: {
-                ...msg,
-                content: msg.content?.replace(/@https?:\/\/[^@]+@/g, '').trim(),
-              },
-              timestamp: new Date().toISOString(),
-            });
-          });
+          for (const msg of res.data.messages) {
+            const cleanedContent = msg.content
+              ?.replace(/@https?:\/\/[^@]+@/g, '')
+              .trim();
+
+            if (msg.type === 'ai') {
+              await typeMessage(cleanedContent);
+            } else {
+              addMessage({
+                type: 'user',
+                data: { ...msg, content: cleanedContent },
+                timestamp: new Date().toISOString(),
+              });
+            }
+          }
         }
 
         if (res.data.session_id && !sessionId) {

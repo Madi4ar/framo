@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import category from '../../../public/images/icons/category-2.svg';
 import Image from 'next/image';
 import { useChatStore } from '../store/chatStore';
@@ -24,7 +24,18 @@ export default function MainPage() {
   const chatHistory = useChatStore((state) => state.chatHistory);
   const serverResponse = useChatStore((state) => state.serverResponse);
 
+  const typingMessage = useChatStore((state) => state.typingMessage);
+  const isTyping = useChatStore((state) => state.isTyping);
+
+  const messagesEndRef = useRef(null);
+
   const hasResponse = chatHistory.some((msg) => msg.type === 'response');
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, typingMessage]);
 
   console.log('chatHistory JSON:', JSON.stringify(chatHistory, null, 2));
 
@@ -57,22 +68,76 @@ export default function MainPage() {
 
       {hasResponse && (
         <div className="flex flex-col gap-3 max-h-[80%] w-[80%] overflow-y-auto absolute top-0">
-          {chatHistory.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${
-                msg.type === 'user' ? 'justify-end' : 'justify-start'
-              }`}>
+          {chatHistory.map((msg, idx) => {
+            const isVideoLink =
+              msg.type === 'response' &&
+              typeof msg.data?.content === 'string' &&
+              msg.data.content.includes('.mp4');
+
+            const videoUrl = isVideoLink
+              ? msg.data.content.match(/https?:\/\/[^\s]+\.mp4/)?.[0]
+              : null;
+
+            return (
               <div
-                className={`max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                  msg.type === 'user'
-                    ? 'bg-[#0B0C0B] self-end border border-[#212121]'
-                    : 'bg-transparent text-white'
+                key={idx}
+                className={`flex ${
+                  msg.type === 'user' ? 'justify-end' : 'justify-start'
                 }`}>
-                {msg.data?.content}
+                <div
+                  className={`max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                    msg.type === 'user'
+                      ? 'bg-[#0B0C0B] self-end border border-[#212121]'
+                      : 'bg-transparent text-white'
+                  }`}>
+                  {msg.data?.content &&
+                    (!isVideoLink || msg.data.content.trim() !== videoUrl) && (
+                      <p>{msg.data.content}</p>
+                    )}
+
+                  {videoUrl && (
+                    <div className="mt-2 flex flex-col gap-2">
+                      <video
+                        src={videoUrl}
+                        controls
+                        className="rounded-lg w-full max-w-[500px] border border-gray-700 shadow-lg"
+                      />
+                      <a
+                        href={videoUrl}
+                        download
+                        className="text-sm text-blue-400 hover:underline">
+                        ⬇ Скачать видео
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {isTyping && typingMessage === '' && (
+            <div className="flex justify-start">
+              <div className="max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap bg-transparent text-white">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                </div>
               </div>
             </div>
-          ))}
+          )}
+
+          {/* 📝 AI печатает */}
+          {typingMessage && (
+            <div className="flex justify-start">
+              <div className="max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap bg-transparent text-white">
+                {typingMessage}
+                <span className="animate-pulse">|</span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
       )}
 

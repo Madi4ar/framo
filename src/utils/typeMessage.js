@@ -5,11 +5,12 @@ export const typeMessage = async (text) => {
   store.setIsTyping(true);
   store.setTypingMessage('');
 
+  await new Promise((r) => setTimeout(r, 500));
+
   let index = 0;
 
   return new Promise((resolve) => {
     const interval = setInterval(() => {
-      store.setTypingMessage((prev) => prev + text.charAt(index));
       const current = useChatStore.getState().typingMessage;
       store.setTypingMessage(current + text.charAt(index));
 

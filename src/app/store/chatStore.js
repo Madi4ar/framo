@@ -4,8 +4,8 @@ import { create } from 'zustand';
 export const useChatStore = create((set, get) => ({
   chatHistory: [],
   serverResponse: null,
-  typingMessage: '', // 👉 текущий текст, который печатается
-  isTyping: false, // 👉 флаг, что идёт печать
+  typingMessage: '',
+  isTyping: false,
 
   addMessage: (message) => {
     const existing = get().chatHistory;
