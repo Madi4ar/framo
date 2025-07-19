@@ -282,10 +282,14 @@ function ChatInput() {
   const [messages, setMessages] = useState([]);
   const [sessionId, setSessionId] = useState(null);
   const [ws, setWs] = useState(null);
+  const projectIdRef = useRef(null);
   const socketRef = useRef(null);
 
   const connectWebSocket = (session_id) => {
-    const ws = new WebSocket(`ws://91.147.104.166:8000/ws/${session_id}`);
+    const accessToken = Cookies.get('access_token');
+    const ws = new WebSocket(
+      `ws://91.147.104.166:8931/ws/${session_id}?authorization=${accessToken}`
+    );
     socketRef.current = ws;
 
     ws.onopen = () => {
@@ -299,10 +303,18 @@ function ChatInput() {
       if (messageData.messages && Array.isArray(messageData.messages)) {
         messageData.messages.forEach((msg) => {
           addMessage({
-            type: msg.type === 'ai' ? 'response' : 'user',
+            type: msg.type === 'message' ? 'response' : 'user',
             data: msg,
             timestamp: new Date().toISOString(),
           });
+        });
+      } else if (messageData.type === 'message' && messageData.data?.content) {
+        addMessage({
+          type: 'response',
+          data: {
+            content: messageData.data.content,
+          },
+          timestamp: new Date().toISOString(),
         });
       }
     };
@@ -321,51 +333,109 @@ function ChatInput() {
 
     setIsLoading(true);
 
-    const videoUrl = videoUrlRef.current;
-    const fullPrompt = videoUrl ? `${prompt} @${videoUrl}@` : prompt;
-
-    // 👇 очищаем, чтобы больше не прикреплялась
-    videoUrlRef.current = null;
-
-    addMessage({
-      type: 'user',
-      data: {
-        content: fullPrompt.replace(/@https?:\/\/[^@]+@/g, '').trim(),
-      },
-      timestamp: new Date().toISOString(),
-    });
-
     try {
-      const payload = {
-        data: {
-          content: fullPrompt,
-        },
-        ...(sessionId && { session_id: sessionId }),
-      };
+      const accessToken = Cookies.get('access_token');
 
-      const res = await axios.post(
-        'http://91.147.104.166:8000/chat/message',
-        payload
-      );
+      // 🔥 Создаём проект при первом сообщении
+      if (!projectIdRef.current) {
+        const projectRes = await api.post('projects/', { name: 'newchat' });
+        const createdId = projectRes.data.id;
 
-      console.log('Ответ от /chat/message:', res.data);
+        if (!createdId)
+          throw new Error('Ошибка: не удалось получить project_id');
 
-      if (res.data.messages && Array.isArray(res.data.messages)) {
-        res.data.messages.forEach((msg) => {
-          addMessage({
-            type: msg.type === 'ai' ? 'response' : 'user',
-            data: {
-              ...msg,
-              content: msg.content?.replace(/@https?:\/\/[^@]+@/g, '').trim(),
-            },
-            timestamp: new Date().toISOString(),
-          });
-        });
+        const projectIdStr = String(createdId);
+        projectIdRef.current = projectIdStr;
+        setProjectId(projectIdStr);
       }
 
-      if (res.data.session_id && !sessionId) {
-        setSessionId(res.data.session_id);
-        connectWebSocket(res.data.session_id);
+      const projectId = projectIdRef.current;
+
+      // 🔼 Загружаем файлы (если есть)
+      if (files.videos.length > 0 || files.audios.length > 0) {
+        const formData = new FormData();
+        formData.append('project_id', projectId);
+
+        files.videos.forEach((file) => formData.append('videos', file));
+        files.audios.forEach((file) => formData.append('audios', file));
+
+        const uploadRes = await api.post('upload/', formData);
+        const videoUrl = uploadRes.data.videos?.[0];
+        if (videoUrl) {
+          videoUrlRef.current = videoUrl;
+          setVideoUrl(videoUrl);
+          addMessage({
+            type: 'response',
+            data: { videoUrl },
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+
+      const videoUrl = videoUrlRef.current;
+      const fullPrompt = videoUrl ? `${prompt} @${videoUrl}@` : prompt;
+      videoUrlRef.current = null;
+
+      addMessage({
+        type: 'user',
+        data: {
+          content: fullPrompt.replace(/@https?:\/\/[^@]+@/g, '').trim(),
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      // 💬 Если WebSocket уже подключён — отправляем через него
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN
+      ) {
+        const wsPayload = {
+          type: 'message',
+          data: {
+            content: fullPrompt,
+          },
+          session_id: sessionId,
+        };
+        socketRef.current.send(JSON.stringify(wsPayload));
+        console.log('📨 Отправлено через WebSocket:', wsPayload);
+      } else {
+        const payload = {
+          project_id: projectId,
+          data: {
+            content: fullPrompt,
+          },
+          ...(sessionId && { session_id: sessionId }),
+        };
+
+        const res = await axios.post(
+          'http://91.147.104.166:8931/chat/message',
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        console.log('Ответ от /chat/message:', res.data);
+
+        if (res.data.messages && Array.isArray(res.data.messages)) {
+          res.data.messages.forEach((msg) => {
+            addMessage({
+              type: msg.type === 'ai' ? 'response' : 'user',
+              data: {
+                ...msg,
+                content: msg.content?.replace(/@https?:\/\/[^@]+@/g, '').trim(),
+              },
+              timestamp: new Date().toISOString(),
+            });
+          });
+        }
+
+        if (res.data.session_id && !sessionId) {
+          setSessionId(res.data.session_id);
+          connectWebSocket(res.data.session_id);
+        }
       }
 
       setPrompt('');

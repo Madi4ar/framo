@@ -29,7 +29,7 @@ function LoginPage() {
     useAlert();
 
   console.log(process.env);
-
+  console.log('ENV', process.env.NEXT_PUBLIC_API_URL);
   const {
     register,
     handleSubmit,
@@ -57,7 +57,7 @@ function LoginPage() {
           expires: 7,
           secure: process.env.NEXT_PUBLIC_API_URL === 'production',
           sameSite: 'Lax',
-          path: '/', // нужно!
+          path: '/',
         });
         console.log(process.env.NEXT_PUBLIC_API_URL);
         router.push('/main');
