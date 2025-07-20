@@ -38,6 +38,7 @@ function ChatInput() {
   //   const { setServerResponse, addMessage } = useChat();
   const addMessage = useChatStore((state) => state.addMessage);
   const setServerResponse = useChatStore((state) => state.setServerResponse);
+  const setWaitingForResponse = useChatStore((state) => state.setWaitingForResponse);
   const aspectRatios = [
     { value: '9:16', icon: aspectRatio916 },
     { value: '16:9', icon: aspectRatio169 },
@@ -140,12 +141,6 @@ function ChatInput() {
         videoUrlRef.current = videoUrl;
         setVideoUrl(videoUrl);
         console.log('🎥 Ссылка на видео:', videoUrl);
-
-        addMessage({
-          type: 'response',
-          data: { videoUrl },
-          timestamp: new Date().toISOString(),
-        });
       }
     } catch (error) {
       console.error('❌ Ошибка при отправке:', error);
@@ -332,8 +327,8 @@ function ChatInput() {
     };
   };
 
-  const handlePromptSubmit = async () => {
-    if (!prompt.trim()) return;
+  const handlePromptSubmit = async (promptText = prompt) => {
+    if (!promptText.trim()) return;
 
     setIsLoading(true);
 
@@ -366,16 +361,11 @@ function ChatInput() {
         if (videoUrl) {
           videoUrlRef.current = videoUrl;
           setVideoUrl(videoUrl);
-          addMessage({
-            type: 'response',
-            data: { videoUrl },
-            timestamp: new Date().toISOString(),
-          });
         }
       }
 
       const videoUrl = videoUrlRef.current;
-      const fullPrompt = videoUrl ? `${prompt} @${videoUrl}@` : prompt;
+      const fullPrompt = videoUrl ? `${promptText} @${videoUrl}@` : promptText;
       videoUrlRef.current = null;
 
       // Добавляем пользовательское сообщение
@@ -428,6 +418,7 @@ function ChatInput() {
               .trim();
 
             if (msg.type === 'ai') {
+              setWaitingForResponse(false);
               await typeMessage(cleanedContent);
             } else {
               addMessage({
@@ -445,9 +436,6 @@ function ChatInput() {
         }
       }
 
-      setPrompt('');
-      setFiles({ videos: [], audios: [] });
-      setPreviews([]);
     } catch (err) {
       console.error('Ошибка при отправке prompt:', err);
       MySwal.fire({
@@ -455,13 +443,23 @@ function ChatInput() {
         text: err.response?.data?.detail || 'Попробуйте ещё раз',
         icon: 'error',
       });
+      setWaitingForResponse(false);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleUnifiedSubmit = async () => {
+    console.log('handleUnifiedSubmit called');
     setIsLoading(true);
+    setWaitingForResponse(true);
+    console.log('setWaitingForResponse(true) called');
+
+    // Сохраняем текст для отправки
+    const currentPrompt = prompt;
+    
+    // Очищаем инпут сразу
+    setPrompt('');
 
     try {
       // Сначала загрузка файлов, если они есть
@@ -470,15 +468,15 @@ function ChatInput() {
       }
 
       // Затем отправка prompt, если он введён
-      if (prompt.trim() !== '') {
-        await handlePromptSubmit();
+      if (currentPrompt.trim() !== '') {
+        await handlePromptSubmit(currentPrompt);
       }
 
       // Если ничего не ввели и не загрузили — предупреждение
       if (
         files.videos.length === 0 &&
         files.audios.length === 0 &&
-        prompt.trim() === ''
+        currentPrompt.trim() === ''
       ) {
         MySwal.fire({
           title: 'Пожалуйста, загрузите видео или введите запрос',
@@ -486,6 +484,10 @@ function ChatInput() {
           confirmButtonText: 'Ок',
         });
       }
+
+      // Очищаем файлы после отправки
+      setFiles({ videos: [], audios: [] });
+      setPreviews([]);
     } finally {
       setIsLoading(false);
     }
@@ -517,6 +519,12 @@ function ChatInput() {
             className="text-[#A1A3A4] w-full bg-transparent outline-none py-2"
             disabled={isLoading}
             onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleUnifiedSubmit();
+              }
+            }}
           />
 
           <input
@@ -529,43 +537,95 @@ function ChatInput() {
           />
         </div>
 
-        <div className="flex gap-2 w-full overflow-x-auto">
-          {previews.map((item, index) => (
-            <div
-              key={index}
-              className="relative mb-4 w-[200px] h-[112px] rounded overflow-hidden">
-              {isLoading && (
-                <div className="absolute inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-10">
-                  <Image
-                    src={loader}
-                    alt=""
-                    className="animate-spin w-8 h-8 bg-black rounded-full"
-                  />
-                </div>
-              )}
+        {previews.length > 0 && (
+          <div className="flex gap-3 w-full overflow-x-auto pb-3">
+            {previews.map((item, index) => (
+              <div
+                key={index}
+                className="relative group flex-shrink-0">
+                {/* Основной контейнер */}
+                <div className="relative w-[180px] h-[100px] rounded-xl overflow-hidden bg-gray-900 border border-gray-700 shadow-lg">
+                  {/* Overlay с информацией */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <p className="text-white text-xs font-medium truncate">
+                        {item.name}
+                      </p>
+                      <p className="text-gray-300 text-xs">
+                        {item.type === 'video' ? '🎥 Video' : '🎵 Audio'}
+                      </p>
+                    </div>
+                  </div>
 
-              {item.type === 'video' ? (
-                <video
-                  src={item.src}
-                  controls={false}
-                  className="w-full h-full object-cover pointer-events-none"
-                />
-              ) : (
-                <div className="border rounded-lg border-gray-500 h-full flex items-center justify-center flex-col">
-                  <Image
-                    src={item.preview}
-                    alt="Audio preview"
-                    className="w-14"
-                  />
+                  {/* Кнопка удаления */}
+                  <button
+                    onClick={() => {
+                      const newPreviews = previews.filter((_, i) => i !== index);
+                      setPreviews(newPreviews);
+                      
+                      if (item.type === 'video') {
+                        const newVideos = files.videos.filter((_, i) => i !== index);
+                        setFiles(prev => ({ ...prev, videos: newVideos }));
+                      } else {
+                        const newAudios = files.audios.filter((_, i) => i !== index);
+                        setFiles(prev => ({ ...prev, audios: newAudios }));
+                      }
+                    }}
+                    className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
+                    <span className="text-white text-xs">×</span>
+                  </button>
 
-                  <p className="mt-1 text-sm text-white-700 truncate text-center">
-                    {item.name}
-                  </p>
+                  {/* Индикатор загрузки */}
+                  {isLoading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                      <div className="bg-black/80 rounded-full p-2">
+                        <Image
+                          src={loader}
+                          alt=""
+                          className="animate-spin w-6 h-6"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Контент */}
+                  {item.type === 'video' ? (
+                    <video
+                      src={item.src}
+                      controls={false}
+                      className="w-full h-full object-cover"
+                      onMouseEnter={(e) => e.target.play()}
+                      onMouseLeave={(e) => {
+                        e.target.pause();
+                        e.target.currentTime = 0;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-blue-900">
+                      <div className="text-center">
+                        <Image
+                          src={item.preview}
+                          alt="Audio preview"
+                          className="w-10 h-10 mx-auto mb-1"
+                        />
+                        <p className="text-white text-xs font-medium truncate px-2">
+                          {item.name}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Иконка типа файла */}
+                  <div className="absolute top-2 left-2 bg-black/50 rounded-lg px-2 py-1">
+                    <span className="text-white text-xs">
+                      {item.type === 'video' ? '🎥' : '🎵'}
+                    </span>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div className="flex gap-[8px]">

@@ -6,6 +6,7 @@ export const useChatStore = create((set, get) => ({
   serverResponse: null,
   typingMessage: '',
   isTyping: false,
+  isWaitingForResponse: false,
 
   addMessage: (message) => {
     const existing = get().chatHistory;
@@ -36,4 +37,8 @@ export const useChatStore = create((set, get) => ({
   setTypingMessage: (message) => set({ typingMessage: message }),
   clearTyping: () => set({ typingMessage: '', isTyping: false }),
   setIsTyping: (flag) => set({ isTyping: flag }),
+  setWaitingForResponse: (flag) => {
+    console.log('setWaitingForResponse called with:', flag);
+    set({ isWaitingForResponse: flag });
+  },
 }));

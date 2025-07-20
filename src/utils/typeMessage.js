@@ -23,8 +23,9 @@ export const typeMessage = async (text) => {
           timestamp: new Date().toISOString(),
         });
         store.clearTyping();
+        store.setWaitingForResponse(false);
         resolve();
       }
-    }, 20);
+    }, 1);
   });
 };

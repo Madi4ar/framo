@@ -26,10 +26,15 @@ export default function MainPage() {
 
   const typingMessage = useChatStore((state) => state.typingMessage);
   const isTyping = useChatStore((state) => state.isTyping);
+  const isWaitingForResponse = useChatStore((state) => state.isWaitingForResponse);
+
+
 
   const messagesEndRef = useRef(null);
 
   const hasResponse = chatHistory.some((msg) => msg.type === 'response');
+  const hasUserMessage = chatHistory.some((msg) => msg.type === 'user');
+  const shouldShowChat = hasResponse || hasUserMessage || isWaitingForResponse;
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -37,11 +42,9 @@ export default function MainPage() {
     }
   }, [chatHistory, typingMessage]);
 
-  console.log('chatHistory JSON:', JSON.stringify(chatHistory, null, 2));
-
   return (
     <div className="bg-black h-full flex flex-col items-center justify-center md:w-[94.5%] 2xl:w-[96%] rounded-2xl right-0 absolute top-1/2 -translate-y-1/2">
-      {!hasResponse && (
+      {!shouldShowChat && (
         <>
           <p className="text-[#BDBDC0] text-2xl font-semibold mb-[24px]">
             Try these:
@@ -66,8 +69,8 @@ export default function MainPage() {
         </>
       )}
 
-      {hasResponse && (
-        <div className="flex flex-col gap-3 max-h-[80%] w-[80%] overflow-y-auto absolute top-0">
+      {shouldShowChat && (
+        <div className="flex flex-col gap-3 max-h-[80%] w-[80%] overflow-y-auto absolute top-0 pt-6">
           {chatHistory.map((msg, idx) => {
             const isVideoLink =
               msg.type === 'response' &&
@@ -81,32 +84,47 @@ export default function MainPage() {
             return (
               <div
                 key={idx}
-                className={`flex ${
+                className={`flex animate-in slide-in-from-bottom-2 duration-300 ${
                   msg.type === 'user' ? 'justify-end' : 'justify-start'
                 }`}>
                 <div
-                  className={`max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                  className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
                     msg.type === 'user'
-                      ? 'bg-[#0B0C0B] self-end border border-[#212121]'
-                      : 'bg-transparent text-white'
+                      ? 'bg-gray-700 text-white self-end border border-gray-600/30 shadow-lg'
+                      : 'text-white self-start'
                   }`}>
                   {msg.data?.content &&
                     (!isVideoLink || msg.data.content.trim() !== videoUrl) && (
-                      <p>{msg.data.content}</p>
+                      <p className="leading-relaxed">{msg.data.content}</p>
                     )}
+                  
+                  <div className={`text-xs mt-2 ${
+                    msg.type === 'user' ? 'text-blue-200' : 'text-gray-400'
+                  }`}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
 
                   {videoUrl && (
-                    <div className="mt-2 flex flex-col gap-2">
-                      <video
-                        src={videoUrl}
-                        controls
-                        className="rounded-lg w-full max-w-[500px] border border-gray-700 shadow-lg"
-                      />
+                    <div className="mt-3 flex flex-col gap-2">
+                      <div className="relative">
+                        <video
+                          src={videoUrl}
+                          controls
+                          className="rounded-xl w-full max-w-[500px] border border-gray-600/50 shadow-xl"
+                        />
+                        <div className="absolute top-2 right-2 bg-black/50 rounded-lg px-2 py-1">
+                          <span className="text-xs text-white">🎥</span>
+                        </div>
+                      </div>
                       <a
                         href={videoUrl}
                         download
-                        className="text-sm text-blue-400 hover:underline">
-                        ⬇ Скачать видео
+                        className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200 flex items-center gap-1 w-fit">
+                        <span>⬇</span>
+                        <span>Скачать видео</span>
                       </a>
                     </div>
                   )}
@@ -115,24 +133,43 @@ export default function MainPage() {
             );
           })}
 
-          {isTyping && typingMessage === '' && (
+          {/* ИИ думает - показываем анимацию */}
+          {isTyping && (
             <div className="flex justify-start">
-              <div className="max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap bg-transparent text-white">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
-                </div>
+              <div className="max-w-[75%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap text-white">
+                {typingMessage ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-400">🤖</span>
+                    <span>{typingMessage}</span>
+                    <span className="animate-pulse text-blue-400">|</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="text-blue-400">🤖</span>
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
+                    </div>
+                    <span className="text-gray-400 text-xs">AI is thinking...</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* 📝 AI печатает */}
-          {typingMessage && (
+          {/* Показываем загрузку когда ждем ответ от сервера */}
+          {isWaitingForResponse && !isTyping && (
             <div className="flex justify-start">
-              <div className="max-w-[75%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap bg-transparent text-white">
-                {typingMessage}
-                <span className="animate-pulse">|</span>
+              <div className="max-w-[75%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap text-white">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
+                  </div>
+                  <span className="text-gray-400 text-xs"></span>
+                </div>
               </div>
             </div>
           )}
