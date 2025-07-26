@@ -6,7 +6,10 @@ export const useChatStore = create((set, get) => ({
   serverResponse: null,
   typingMessage: '',
   isTyping: false,
+  inviteCode: '',
   isWaitingForResponse: false,
+
+  setInviteCode: (code) => set({ inviteCode: code }),
 
   addMessage: (message) => {
     const existing = get().chatHistory;
